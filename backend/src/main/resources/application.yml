@@ -27,6 +27,11 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
 
+llm:
+  api-key: ${LLM_API_KEY:}
+  model: ${LLM_MODEL:gpt-4o-mini}
+  base-url: ${LLM_BASE_URL:https://api.openai.com/v1}
+
 management:
   endpoints:
     web:
