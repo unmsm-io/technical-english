@@ -62,6 +62,34 @@ bun test
 - `/admin/verification-metrics`
   Panel de aprobación, razones de rechazo y volumen de items generados en el tiempo.
 
+## Rutas nuevas de Sprint 6
+
+- `/mastery`
+  Panel de dominio del estudiante con selector de usuario, anillo de progreso, radar SVG, estado de flow, heatmap de estabilidad y tabla de knowledge components.
+- `/mastery/kcs/:id`
+  Detalle de un knowledge component con `P(L)` actual, historial reciente y mappings relacionados.
+- `/admin/cohort-analytics`
+  Vista agregada para administradores con heatmap de mastery y curva de adquisición de cohorte.
+
+## Integraciones nuevas de Sprint 6
+
+- `src/features/mastery/MasteryApi.ts`
+  Cliente axios para mastery, analytics del estudiante y catálogo de KCs.
+- `src/features/cohort/CohortApi.ts`
+  Cliente axios para analytics agregados de cohorte.
+- `src/features/mastery/components/`
+  Radar SVG nativo, progress ring, flow card, heatmap y tabla de KCs.
+- `src/features/cohort/components/`
+  Visualizaciones del panel de cohorte.
+- `src/pages/Dashboard.tsx`
+  Añade widget de mastery y widget de cohorte.
+- `src/features/users/UserProfile.tsx`
+  Añade el bloque "Mi dominio del inglés técnico".
+- `src/components/layout/Header.tsx`
+  Añade la navegación "Mi dominio" y la entrada admin "Cohort Analytics".
+- `src/components/layout/Breadcrumbs.tsx`
+  Añade labels para rutas de mastery y cohorte.
+
 ## Integraciones nuevas de Sprint 5
 
 - `src/features/admin/AdminApi.ts`
@@ -89,6 +117,10 @@ bun test
   API, store Zustand y componentes del flujo TBLT.
 - `src/features/review/`
   API, store Zustand y componentes del flujo FSRS-6.
+- `src/features/mastery/`
+  API, tipos y componentes del dashboard de dominio.
+- `src/features/cohort/`
+  API y componentes del dashboard agregado.
 - `src/components/layout/`
   Header responsive y breadcrumbs del sprint.
 
@@ -101,3 +133,9 @@ bun test
 - `src/features/task/taskStore.test.ts`
 - `src/pages/ReviewSessionPage.test.tsx`
 - `src/features/review/reviewStore.test.ts`
+- `src/pages/MasteryPage.test.tsx`
+- `src/pages/MasteryKcDetailPage.test.tsx`
+- `src/pages/AdminCohortAnalyticsPage.test.tsx`
+- `src/features/mastery/MasteryApi.test.ts`
+- `src/features/mastery/components/MasteryRadarChart.test.tsx`
+- `src/features/mastery/components/FlowStateCard.test.tsx`
