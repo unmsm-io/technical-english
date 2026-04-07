@@ -44,6 +44,12 @@ bun test
   Flujo de ejecución en tres fases con micro-glosses y envío de respuesta.
 - `/tasks/:id/result/:attemptId`
   Resultado de la tarea con feedback, explicación didáctica y acciones de cierre.
+- `/review/session`
+  Sesión diaria de repaso con flip card, teclas `1/2/3/4`, modo de producción y cierre de sesión.
+- `/review/deck`
+  Deck completo con filtros por estado, tier, capa y acción de reset.
+- `/review/stats`
+  Métricas agregadas, heatmap de estabilidad, racha y top de tarjetas con más fallos.
 
 ## Componentes relevantes
 
@@ -53,6 +59,8 @@ bun test
   API y store Zustand para el flujo diagnóstico.
 - `src/features/task/`
   API, store Zustand y componentes del flujo TBLT.
+- `src/features/review/`
+  API, store Zustand y componentes del flujo FSRS-6.
 - `src/components/layout/`
   Header responsive y breadcrumbs del sprint.
 
@@ -63,3 +71,5 @@ bun test
 - `src/pages/TaskListPage.test.tsx`
 - `src/pages/TaskRunnerPage.test.tsx`
 - `src/features/task/taskStore.test.ts`
+- `src/pages/ReviewSessionPage.test.tsx`
+- `src/features/review/reviewStore.test.ts`

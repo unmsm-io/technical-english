@@ -78,6 +78,48 @@ Swagger UI queda disponible en `http://localhost:8080/swagger-ui.html`.
 - `GET /api/v1/task-attempts/{id}`
   Recupera el estado actual del intento, incluido el feedback almacenado si ya existe.
 
+## Review module (FSRS-6)
+
+El módulo de repaso implementa scheduling FSRS-6 sobre el catálogo de vocabulario de Sprint 2. La tarjeta se crea por usuario, no por término global, y mantiene `stability`, `difficulty`, `due`, `reps`, `lapses` y `retentionTier`.
+
+Base científica usada en el código y la documentación:
+
+- Ye et al. (2022 KDD, 2023 IEEE TKDE) para el algoritmo FSRS y el modelo de memoria con estabilidad, dificultad y retrievability.
+- Kim y Webb (2022) para el efecto agregado `d=0.56` de práctica espaciada sobre vocabulario L2.
+- Cepeda et al. (2008) para la relación entre retención objetivo e intervalo óptimo.
+- Nation (2013) para separar `GENERAL` (`GSL`, `AWL`) de `TECHNICAL_CORE` (`EEWL`, `CSAWL`).
+
+Políticas de retención:
+
+- `GENERAL`
+  Usa `requestRetention = 0.90`.
+- `TECHNICAL_CORE`
+  Usa `requestRetention = 0.95`, lo que genera intervalos más cortos para términos críticos del dominio.
+
+Endpoints expuestos:
+
+- `GET /api/v1/reviews/due?userId={id}&limit=20`
+  Devuelve tarjetas vencidas para la sesión actual.
+- `POST /api/v1/reviews/{cardId}/grade`
+  Reprograma la tarjeta con `AGAIN`, `HARD`, `GOOD` o `EASY`.
+- `POST /api/v1/reviews/{cardId}/grade-with-example`
+  Reprograma la tarjeta y genera feedback corto sobre una oración producida por el estudiante.
+- `POST /api/v1/reviews/bootstrap?userId={id}`
+  Crea manualmente el deck inicial si el hook del diagnóstico no corrió.
+- `GET /api/v1/reviews/stats?userId={id}`
+  Devuelve métricas agregadas del deck.
+- `GET /api/v1/reviews/deck?userId={id}&state=&tier=&layer=&q=&page=&size=`
+  Lista el deck completo con filtros.
+- `GET /api/v1/reviews/{cardId}`
+  Recupera una tarjeta puntual.
+- `POST /api/v1/reviews/{cardId}/reset`
+  Reinicia una tarjeta al estado `NEW`.
+
+Mantenimiento:
+
+- `ReviewMaintenanceJob` limpia `ReviewLog` con más de 90 días a las `03:00`.
+- Se puede desactivar con `review.maintenance.enabled=false`.
+
 ## Seeds del sprint
 
 - `src/main/resources/seeds/vocabulary/`
