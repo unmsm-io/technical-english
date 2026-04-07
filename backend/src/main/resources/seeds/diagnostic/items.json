@@ -1,0 +1,122 @@
+[
+  {
+    "cefrLevel": "A1",
+    "skill": "READING",
+    "questionText": "In the sentence 'Open the file and click save', what should the user do first?",
+    "options": ["Click save", "Open the file", "Close the file", "Print the file"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "La accion inicial es 'open the file', porque aparece antes de 'click save'."
+  },
+  {
+    "cefrLevel": "A1",
+    "skill": "VOCAB",
+    "questionText": "Which word means 'pantalla' in a computer lab?",
+    "options": ["Screen", "Chair", "Paper", "Window"],
+    "correctAnswerIdx": 0,
+    "explanationEs": "En el contexto tecnico, 'screen' corresponde a 'pantalla'."
+  },
+  {
+    "cefrLevel": "A1",
+    "skill": "GRAMMAR",
+    "questionText": "Choose the correct sentence for a simple instruction.",
+    "options": ["You opens the app.", "Open the app.", "Opened the app.", "Opening the app."],
+    "correctAnswerIdx": 1,
+    "explanationEs": "Las instrucciones breves en ingles usan el verbo base: 'Open the app'."
+  },
+  {
+    "cefrLevel": "A2",
+    "skill": "READING",
+    "questionText": "A notice says: 'Wear gloves before handling the battery pack.' What is the reason for the gloves?",
+    "options": ["To save battery", "To stay safe", "To clean the table", "To label the pack"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "La instruccion apunta a seguridad durante la manipulacion del battery pack."
+  },
+  {
+    "cefrLevel": "A2",
+    "skill": "VOCAB",
+    "questionText": "What is the best meaning of 'tool' in a workshop manual?",
+    "options": ["A person", "A machine or instrument for work", "A color", "A document title"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "En manuales y laboratorios, 'tool' es una herramienta o instrumento de trabajo."
+  },
+  {
+    "cefrLevel": "A2",
+    "skill": "GRAMMAR",
+    "questionText": "Choose the best sentence for an ongoing test.",
+    "options": ["The sensor measure temperature.", "The sensor is measuring temperature.", "The sensor measured temperature every day.", "The sensor has measure temperature."],
+    "correctAnswerIdx": 1,
+    "explanationEs": "La forma continua 'is measuring' expresa una accion que ocurre en este momento."
+  },
+  {
+    "cefrLevel": "B1",
+    "skill": "READING",
+    "questionText": "A lab memo says: 'If the voltage drops below 3V, repeat the calibration routine.' What should happen after a low-voltage reading?",
+    "options": ["Replace the monitor", "Repeat the calibration routine", "Delete the results", "Shut down the internet router"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "La condicion 'if the voltage drops below 3V' activa repetir la calibracion."
+  },
+  {
+    "cefrLevel": "B1",
+    "skill": "VOCAB",
+    "questionText": "Which word is closest in meaning to 'reliable' in an engineering report?",
+    "options": ["Noisy", "Dependable", "Temporary", "Sharp"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "'Dependable' expresa que algo funciona de manera consistente y confiable."
+  },
+  {
+    "cefrLevel": "B1",
+    "skill": "GRAMMAR",
+    "questionText": "Select the sentence that correctly reports a completed experiment.",
+    "options": ["We have test the module yesterday.", "We tested the module yesterday.", "We testing the module yesterday.", "We test the module yesterday."],
+    "correctAnswerIdx": 1,
+    "explanationEs": "Con el marcador temporal 'yesterday' corresponde el pasado simple: 'tested'."
+  },
+  {
+    "cefrLevel": "B2",
+    "skill": "READING",
+    "questionText": "A project brief states: 'Because the API returned stale data, the monitoring team postponed the deployment.' Why was the deployment delayed?",
+    "options": ["The interface was redesigned", "The API returned outdated data", "The team forgot the password", "The repository was archived"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "'Stale data' significa datos desactualizados, por eso la implementacion se pospuso."
+  },
+  {
+    "cefrLevel": "B2",
+    "skill": "VOCAB",
+    "questionText": "In software architecture, what does 'scalability' refer to?",
+    "options": ["The color of the interface", "The ability to handle growth efficiently", "The speed of typing code", "The location of a file"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "'Scalability' describe la capacidad del sistema para crecer sin degradarse."
+  },
+  {
+    "cefrLevel": "B2",
+    "skill": "GRAMMAR",
+    "questionText": "Choose the most accurate sentence for a technical recommendation.",
+    "options": ["The module should be replaced before the next test cycle.", "The module should replaced before the next test cycle.", "The module should to be replaced before the next test cycle.", "The module should being replaced before the next test cycle."],
+    "correctAnswerIdx": 0,
+    "explanationEs": "Despues de 'should' se usa 'be' para formar la voz pasiva recomendativa."
+  },
+  {
+    "cefrLevel": "C1",
+    "skill": "READING",
+    "questionText": "An incident report says: 'Although throughput improved after caching, observability declined because several traces were sampled out.' What trade-off is described?",
+    "options": ["Better hardware but weaker security", "Higher throughput but lower visibility into traces", "More memory but slower queries", "Fewer users but more alerts"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "El texto contrasta mejor throughput con menor observabilidad debido al muestreo de trazas."
+  },
+  {
+    "cefrLevel": "C1",
+    "skill": "VOCAB",
+    "questionText": "What is the best definition of 'idempotency' in API design?",
+    "options": ["Encrypting every request", "Getting the same result when repeating the same operation", "Compressing a file for transfer", "Tracking response time in logs"],
+    "correctAnswerIdx": 1,
+    "explanationEs": "Una operacion idempotente mantiene el mismo efecto aunque se repita la misma solicitud."
+  },
+  {
+    "cefrLevel": "C1",
+    "skill": "GRAMMAR",
+    "questionText": "Choose the sentence that best uses a reduced relative clause in technical writing.",
+    "options": ["The data that was collected during the sprint was archived.", "The data collected during the sprint was archived.", "The data collecting during the sprint was archived.", "The data was collected during the sprint was archived."],
+    "correctAnswerIdx": 1,
+    "explanationEs": "La forma reducida 'data collected during the sprint' es precisa y natural en escritura tecnica."
+  }
+]

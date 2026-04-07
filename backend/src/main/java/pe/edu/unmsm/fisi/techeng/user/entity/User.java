@@ -1,6 +1,7 @@
 package pe.edu.unmsm.fisi.techeng.user.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,6 +43,16 @@ public class User extends BaseEntity {
 
     @Column(length = 5)
     private String englishLevel;
+
+    @Column(length = 300)
+    private String targetSkills;
+
+    private Integer vocabularySize;
+
+    @Column(nullable = false)
+    private Boolean diagnosticCompleted = false;
+
+    private LocalDateTime diagnosticCompletedAt;
 
     @Column(nullable = false)
     private Boolean active = true;

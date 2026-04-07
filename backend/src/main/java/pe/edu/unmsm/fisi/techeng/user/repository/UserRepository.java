@@ -31,4 +31,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> search(@Param("query") String query, Pageable pageable);
 
     Page<User> findByActiveTrue(Pageable pageable);
+
+    long countByActiveTrue();
+
+    long countByDiagnosticCompletedTrue();
+
+    @Query("select coalesce(avg(u.vocabularySize), 0) from User u where u.vocabularySize is not null")
+    Double averageVocabularySize();
 }

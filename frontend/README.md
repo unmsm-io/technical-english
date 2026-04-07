@@ -1,73 +1,52 @@
-# React + TypeScript + Vite
+# Frontend Sprint 2
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React + Vite para el Sprint 2 de `technical-english`.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Bun
 
-## React Compiler
+## Desarrollo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun install
+bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+La app se sirve en `http://localhost:5173` y proxyea `/api` hacia el backend local.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Verificación
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun run build
+bun test
 ```
+
+## Rutas nuevas de Sprint 2
+
+- `/vocabulary`
+  Navegador de vocabulario con filtros por capa, CEFR, búsqueda y paginación.
+- `/vocabulary/:id`
+  Detalle de término con badges, definición y ejemplo.
+- `/profiler`
+  Perfilador de textos con cobertura conocida, tokens protegidos y modal para abrir vocabulario.
+- `/diagnostic/start`
+  Selección de usuario e inicio de diagnóstico.
+- `/diagnostic/test`
+  Flujo secuencial de 15 preguntas con barra de progreso.
+- `/diagnostic/result`
+  Resultado del placement CEFR con desglose por nivel y CTA hacia vocabulario.
+
+## Componentes relevantes
+
+- `src/features/vocabulary/`
+  API, badges y componentes de resaltado del profiler.
+- `src/features/diagnostic/`
+  API y store Zustand para el flujo diagnóstico.
+- `src/components/layout/`
+  Header responsive y breadcrumbs del sprint.
+
+## Pruebas incluidas
+
+- `src/pages/VocabularyPage.test.tsx`
+- `src/pages/DiagnosticTestPage.test.tsx`

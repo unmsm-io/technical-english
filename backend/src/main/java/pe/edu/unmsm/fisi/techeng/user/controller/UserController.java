@@ -3,6 +3,7 @@ package pe.edu.unmsm.fisi.techeng.user.controller;
 import pe.edu.unmsm.fisi.techeng.shared.dto.ApiResponse;
 import pe.edu.unmsm.fisi.techeng.user.dto.CreateUserRequest;
 import pe.edu.unmsm.fisi.techeng.user.dto.UpdateUserRequest;
+import pe.edu.unmsm.fisi.techeng.user.dto.UserProfileUpdateRequest;
 import pe.edu.unmsm.fisi.techeng.user.dto.UserResponse;
 import pe.edu.unmsm.fisi.techeng.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,5 +68,13 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.ok(ApiResponse.ok(null, "User deleted successfully"));
+    }
+
+    @PatchMapping("/{id}/profile")
+    @Operation(summary = "Actualizar perfil extendido del usuario")
+    public ResponseEntity<ApiResponse<UserResponse>> patchProfile(
+            @PathVariable Long id,
+            @RequestBody UserProfileUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(userService.patchProfile(id, request), "Perfil actualizado correctamente"));
     }
 }
