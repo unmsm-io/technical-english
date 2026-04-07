@@ -15,11 +15,14 @@ import { deleteUser, getUser, patchUserProfile } from "../../api/users"
 import { getDiagnosticHistory } from "../diagnostic/DiagnosticApi"
 import { ReviewApi } from "../review/ReviewApi"
 import { TaskApi } from "../task/TaskApi"
+import { MasteryApi } from "../mastery/MasteryApi"
+import { MasteryRadarChart } from "../mastery/components/MasteryRadarChart"
 import { TaskTypeBadge } from "../task/components/TaskTypeBadge"
 import type { DiagnosticAttemptHistory } from "../../types/diagnostic"
 import type { ReviewStats } from "../../types/review"
 import type { TaskAttemptHistoryItem } from "../../types/task"
 import type { User } from "../../types"
+import type { MasteryRadarResponse } from "../../types"
 
 const targetSkillOptions = [
   { value: "READING_DOCS", label: "Lectura de documentación" },
@@ -37,6 +40,7 @@ export function UserProfile() {
   const [history, setHistory] = useState<DiagnosticAttemptHistory[]>([])
   const [taskHistory, setTaskHistory] = useState<TaskAttemptHistoryItem[]>([])
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null)
+  const [masteryRadar, setMasteryRadar] = useState<MasteryRadarResponse | null>(null)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -53,6 +57,9 @@ export function UserProfile() {
         setSelectedSkills(userData.targetSkills)
         if (userData.englishLevel) {
           ReviewApi.getStats(userId).then(setReviewStats).catch(() => setReviewStats(null))
+          MasteryApi.getStudentMasteryRadar(userId)
+            .then(setMasteryRadar)
+            .catch(() => setMasteryRadar(null))
         }
       })
       .catch(() => setError("No se pudo cargar el perfil del usuario."))
@@ -269,6 +276,57 @@ export function UserProfile() {
           </button>
           {saveMessage ? <p className="text-sm text-emerald-600">{saveMessage}</p> : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Mi dominio del inglés técnico</h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Resumen por knowledge component y acceso al panel completo de mastery.
+            </p>
+          </div>
+          <Link
+            to={`/mastery?userId=${user.id}`}
+            className="inline-flex items-center justify-center rounded-xl border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+          >
+            Abrir Mi dominio
+          </Link>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            {masteryRadar ? (
+              <MasteryRadarChart entries={masteryRadar.kcs.slice(0, 6)} size={280} />
+            ) : (
+              <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+                El radar aparecerá cuando existan respuestas suficientes de diagnóstico, tareas o repaso.
+              </div>
+            )}
+          </div>
+          <div className="grid gap-3">
+            <MetricCard
+              label="KCs dominados"
+              value={
+                masteryRadar
+                  ? `${masteryRadar.masteredCount}/${masteryRadar.totalKcs}`
+                  : "Sin datos"
+              }
+            />
+            <MetricCard
+              label="Última actualización"
+              value={
+                masteryRadar?.lastUpdate
+                  ? new Date(masteryRadar.lastUpdate).toLocaleDateString()
+                  : "Sin actividad"
+              }
+            />
+            <MetricCard
+              label="Mejor knowledge component"
+              value={masteryRadar?.kcs[0]?.kcNameEs ?? "Aún no disponible"}
+            />
+          </div>
         </div>
       </section>
 

@@ -6,9 +6,12 @@ import { getUsers } from "../api/users"
 import { ReviewApi } from "../features/review/ReviewApi"
 import { TaskApi } from "../features/task/TaskApi"
 import { AdminApi } from "../features/admin/AdminApi"
+import { MasteryApi } from "../features/mastery/MasteryApi"
+import { CohortApi } from "../features/cohort/CohortApi"
 import type { DashboardStats as DashboardStatsType } from "../types/diagnostic"
 import type { ReviewStats, TaskStats, User } from "../types"
 import type { VerificationMetrics } from "../types/admin"
+import type { CohortMasteryResponse, MasteryRadarResponse } from "../types"
 
 export function Dashboard() {
   const [statsData, setStatsData] = useState<DashboardStatsType | null>(null)
@@ -17,6 +20,9 @@ export function Dashboard() {
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null)
   const [verificationMetrics, setVerificationMetrics] =
     useState<VerificationMetrics | null>(null)
+  const [masteryRadar, setMasteryRadar] = useState<MasteryRadarResponse | null>(null)
+  const [cohortMastery, setCohortMastery] = useState<CohortMasteryResponse | null>(null)
+  const [hasAdmin, setHasAdmin] = useState(false)
 
   useEffect(() => {
     getDashboardStats()
@@ -35,8 +41,14 @@ export function Dashboard() {
       .then((page) => {
         const readyUser = page.content.find((user) => Boolean(user.englishLevel)) ?? null
         setTaskReadyUser(readyUser)
+        const adminAvailable = page.content.some((user) => user.role === "ADMIN")
+        setHasAdmin(adminAvailable)
         if (readyUser) {
           ReviewApi.getStats(readyUser.id).then(setReviewStats).catch(() => {})
+          MasteryApi.getStudentMasteryRadar(readyUser.id).then(setMasteryRadar).catch(() => {})
+        }
+        if (adminAvailable) {
+          CohortApi.getMastery().then(setCohortMastery).catch(() => {})
         }
       })
       .catch(() => {})
@@ -197,6 +209,111 @@ export function Dashboard() {
           </p>
         </div>
       ) : null}
+
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-medium text-slate-900">Widget de mastery</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Resumen rápido del dominio técnico del estudiante activo.
+              </p>
+            </div>
+            <Link
+              to={taskReadyUser ? `/mastery?userId=${taskReadyUser.id}` : "/mastery"}
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              Abrir
+            </Link>
+          </div>
+          {masteryRadar && taskReadyUser ? (
+            <div className="mt-5 space-y-4">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-sm text-slate-600">{taskReadyUser.firstName}</p>
+                <p className="mt-1 text-3xl font-semibold text-slate-950">
+                  {masteryRadar.masteredCount}/{masteryRadar.totalKcs}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">knowledge components dominados</p>
+              </div>
+              <div className="space-y-3">
+                {masteryRadar.kcs.slice(0, 3).map((entry) => (
+                  <div key={entry.kcId} className="rounded-2xl border border-slate-200 px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium text-slate-900">{entry.kcNameEs}</span>
+                      <span className="text-sm font-semibold text-slate-700">
+                        {Math.round(entry.pLearned * 100)}%
+                      </span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className="h-full rounded-full bg-blue-600"
+                        style={{ width: `${Math.max(4, Math.round(entry.pLearned * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-5 text-sm text-slate-500">
+              Aún no hay un estudiante listo para mostrar mastery.
+            </p>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-medium text-slate-900">Widget de cohorte</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Resumen agregado reservado para administradores.
+              </p>
+            </div>
+            <Link
+              to="/admin/cohort-analytics"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              Abrir
+            </Link>
+          </div>
+          {hasAdmin && cohortMastery ? (
+            <div className="mt-5 space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-sm text-slate-600">Usuarios analizados</p>
+                  <p className="mt-1 text-3xl font-semibold text-slate-950">
+                    {cohortMastery.userCount}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-sm text-slate-600">KCs trazados</p>
+                  <p className="mt-1 text-3xl font-semibold text-slate-950">
+                    {cohortMastery.distributions.length}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {cohortMastery.distributions.slice(0, 3).map((distribution) => (
+                  <div key={distribution.kcId} className="rounded-2xl border border-slate-200 px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium text-slate-900">
+                        {distribution.kcNameEs}
+                      </span>
+                      <span className="text-sm text-slate-600">
+                        {distribution.masteredCount} dominados
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-5 text-sm text-slate-500">
+              Este widget se habilita cuando existe al menos un usuario administrador.
+            </p>
+          )}
+        </section>
+      </div>
     </div>
   )
 }

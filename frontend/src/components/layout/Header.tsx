@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Sparkles,
   Gauge,
+  Radar,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { cn } from "../../lib/utils"
@@ -26,6 +27,7 @@ const navItems = [
   { to: "/diagnostic/start", label: "Diagnóstico", icon: ClipboardCheck },
   { to: "/tasks", label: "Tareas", icon: ListChecks },
   { to: "/review/session", label: "Repaso", icon: Brain },
+  { to: "/mastery", label: "Mi dominio", icon: Radar },
   { to: "/content", label: "Contenido", icon: BookOpen },
 ]
 
@@ -117,6 +119,13 @@ export function Header() {
                       <BarChart3 className="h-4 w-4" />
                       Métricas
                     </Link>
+                    <Link
+                      to="/admin/cohort-analytics"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                      <Radar className="h-4 w-4" />
+                      Cohort Analytics
+                    </Link>
                   </div>
                 ) : null}
               </div>
@@ -176,6 +185,14 @@ export function Header() {
                 >
                   <ShieldCheck className="h-4 w-4" />
                   Métricas admin
+                </Link>
+                <Link
+                  to="/admin/cohort-analytics"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass(location.pathname.startsWith("/admin/cohort-analytics"))}
+                >
+                  <Radar className="h-4 w-4" />
+                  Cohort Analytics
                 </Link>
               </>
             ) : null}
