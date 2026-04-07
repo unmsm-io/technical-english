@@ -219,7 +219,8 @@ public class DiagnosticService {
                 item.getCefrLevel(),
                 item.getSkill(),
                 item.getQuestionText(),
-                readOptions(item.getOptionsJson())
+                readOptions(item.getOptionsJson()),
+                item.getDifficulty()
         );
     }
 

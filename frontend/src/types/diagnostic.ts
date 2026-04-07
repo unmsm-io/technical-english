@@ -6,6 +6,7 @@ export interface DiagnosticItem {
   skill: DiagnosticSkill
   questionText: string
   options: string[]
+  difficulty?: number | null
 }
 
 export interface DiagnosticAttemptStartResponse {
@@ -19,11 +20,15 @@ export interface DiagnosticResult {
   attemptId: number
   userId: number
   placedLevel: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
+  placedLevelLegacy: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
   correctCount: number
   totalItems: number
   perLevelBreakdown: Record<string, number>
   perSkillBreakdown: Record<string, number>
   vocabularySize: number
+  abilityTheta: number | null
+  abilityStandardError: number | null
+  predictedCefr: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null
   completedAt: string
 }
 
