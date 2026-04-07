@@ -4,6 +4,7 @@ import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.shared.exception.ResourceNotFoundException;
 import pe.edu.unmsm.fisi.techeng.user.dto.CreateUserRequest;
 import pe.edu.unmsm.fisi.techeng.user.dto.UpdateUserRequest;
+import pe.edu.unmsm.fisi.techeng.user.dto.UserProfileUpdateRequest;
 import pe.edu.unmsm.fisi.techeng.user.dto.UserResponse;
 import pe.edu.unmsm.fisi.techeng.user.entity.User;
 import pe.edu.unmsm.fisi.techeng.user.mapper.UserMapper;
@@ -69,9 +70,30 @@ public class UserService {
         if (request.role() != null) user.setRole(request.role());
         if (request.faculty() != null) user.setFaculty(request.faculty());
         if (request.englishLevel() != null) user.setEnglishLevel(request.englishLevel());
+        if (request.targetSkills() != null) user.setTargetSkills(userMapper.joinSkills(request.targetSkills()));
+        if (request.vocabularySize() != null) user.setVocabularySize(request.vocabularySize());
+        if (request.diagnosticCompleted() != null) user.setDiagnosticCompleted(request.diagnosticCompleted());
+        if (request.diagnosticCompletedAt() != null) user.setDiagnosticCompletedAt(request.diagnosticCompletedAt());
 
         User saved = userRepository.save(user);
         return userMapper.toResponse(saved);
+    }
+
+    public UserResponse patchProfile(Long id, UserProfileUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        if (request.targetSkills() != null) user.setTargetSkills(userMapper.joinSkills(request.targetSkills()));
+        if (request.vocabularySize() != null) user.setVocabularySize(request.vocabularySize());
+        if (request.diagnosticCompleted() != null) user.setDiagnosticCompleted(request.diagnosticCompleted());
+        if (request.diagnosticCompletedAt() != null) user.setDiagnosticCompletedAt(request.diagnosticCompletedAt());
+
+        return userMapper.toResponse(userRepository.save(user));
+    }
+
+    public User getEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
     public void delete(Long id) {
