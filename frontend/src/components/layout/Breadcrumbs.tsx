@@ -8,9 +8,11 @@ const segmentLabels: Record<string, string> = {
   vocabulary: "Vocabulario",
   profiler: "Perfilador",
   diagnostic: "Diagnóstico",
+  tasks: "Tareas",
   start: "Inicio",
   test: "Prueba",
   result: "Resultado",
+  run: "Ejecución",
   content: "Contenido",
 }
 
@@ -18,7 +20,7 @@ export function Breadcrumbs() {
   const location = useLocation()
   const segments = location.pathname.split("/").filter(Boolean)
 
-  if (segments.length === 0) {
+  if (segments.length === 0 || (segments[0] === "tasks" && segments.length > 1)) {
     return null
   }
 

@@ -11,6 +11,10 @@ import { ProfilerPage } from "./pages/ProfilerPage"
 import { DiagnosticStartPage } from "./pages/DiagnosticStartPage"
 import { DiagnosticTestPage } from "./pages/DiagnosticTestPage"
 import { DiagnosticResultPage } from "./pages/DiagnosticResultPage"
+import { TaskListPage } from "./pages/TaskListPage"
+import { TaskDetailPage } from "./pages/TaskDetailPage"
+import { TaskRunnerPage } from "./pages/TaskRunnerPage"
+import { TaskResultPage } from "./pages/TaskResultPage"
 
 export default function App() {
   return (
@@ -28,6 +32,10 @@ export default function App() {
         <Route path="diagnostic/start" element={<DiagnosticStartPage />} />
         <Route path="diagnostic/test" element={<DiagnosticTestPage />} />
         <Route path="diagnostic/result" element={<DiagnosticResultPage />} />
+        <Route path="tasks" element={<TaskListPage />} />
+        <Route path="tasks/:id" element={<TaskDetailPage />} />
+        <Route path="tasks/:id/run" element={<TaskRunnerPage />} />
+        <Route path="tasks/:id/result/:attemptId" element={<TaskResultPage />} />
       </Route>
     </Routes>
   )
