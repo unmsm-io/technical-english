@@ -12,7 +12,7 @@ import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 
 class DiagnosticPlacementTest {
 
-    private final DiagnosticService diagnosticService = new DiagnosticService(null, null, null, new ObjectMapper());
+    private final DiagnosticService diagnosticService = new DiagnosticService(null, null, null, new ObjectMapper(), null);
 
     @Test
     void shouldDefaultToA1WhenNoLevelReachesThreshold() {
