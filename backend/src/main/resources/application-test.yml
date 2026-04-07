@@ -10,3 +10,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+
+review:
+  maintenance:
+    enabled: false
+
+calibration:
+  enabled: false
