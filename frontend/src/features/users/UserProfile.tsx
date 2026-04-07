@@ -13,7 +13,10 @@ import {
 } from "lucide-react"
 import { deleteUser, getUser, patchUserProfile } from "../../api/users"
 import { getDiagnosticHistory } from "../diagnostic/DiagnosticApi"
+import { TaskApi } from "../task/TaskApi"
+import { TaskTypeBadge } from "../task/components/TaskTypeBadge"
 import type { DiagnosticAttemptHistory } from "../../types/diagnostic"
+import type { TaskAttemptHistoryItem } from "../../types/task"
 import type { User } from "../../types"
 
 const targetSkillOptions = [
@@ -30,6 +33,7 @@ export function UserProfile() {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
   const [history, setHistory] = useState<DiagnosticAttemptHistory[]>([])
+  const [taskHistory, setTaskHistory] = useState<TaskAttemptHistoryItem[]>([])
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -38,10 +42,11 @@ export function UserProfile() {
 
   useEffect(() => {
     const userId = Number(id)
-    Promise.all([getUser(userId), getDiagnosticHistory(userId)])
-      .then(([userData, historyData]) => {
+    Promise.all([getUser(userId), getDiagnosticHistory(userId), TaskApi.getHistory(userId)])
+      .then(([userData, historyData, taskHistoryData]) => {
         setUser(userData)
         setHistory(historyData)
+        setTaskHistory(taskHistoryData)
         setSelectedSkills(userData.targetSkills)
       })
       .catch(() => setError("No se pudo cargar el perfil del usuario."))
@@ -258,6 +263,47 @@ export function UserProfile() {
           </button>
           {saveMessage ? <p className="text-sm text-emerald-600">{saveMessage}</p> : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Historial de tareas TBLT</h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Revisa tareas completadas o pendientes con su puntaje más reciente.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {taskHistory.length > 0 ? (
+            taskHistory.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => navigate(`/tasks/${item.taskId}/result/${item.id}`)}
+                className="flex w-full flex-col gap-3 rounded-xl border border-gray-200 p-4 text-left transition hover:border-blue-200 hover:bg-blue-50/50 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="space-y-2">
+                  <p className="font-medium text-gray-900">{item.taskTitleEs}</p>
+                  <TaskTypeBadge type={item.taskType} />
+                </div>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                  <span>Puntaje: {item.score ?? "Pendiente"}</span>
+                  <span>
+                    {item.completedAt
+                      ? new Date(item.completedAt).toLocaleDateString()
+                      : "En progreso"}
+                  </span>
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500">
+              Aún no hay tareas TBLT registradas para este usuario.
+            </div>
+          )}
         </div>
       </section>
 

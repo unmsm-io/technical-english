@@ -142,6 +142,8 @@ public class TaskAttemptService {
                 attempt.getUserId(),
                 attempt.getPhase(),
                 attempt.getUserAnswerEn(),
+                readFeedback(attempt.getLlmFeedbackJson()),
+                attempt.getLlmFeedbackCefr(),
                 attempt.getScore(),
                 attempt.getStartedAt(),
                 attempt.getSubmittedAt(),
@@ -167,6 +169,18 @@ public class TaskAttemptService {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("No se pudo serializar el feedback de la tarea", exception);
+        }
+    }
+
+    private TaskFeedbackPayload readFeedback(String payloadJson) {
+        if (payloadJson == null || payloadJson.isBlank()) {
+            return null;
+        }
+
+        try {
+            return objectMapper.readValue(payloadJson, TaskFeedbackPayload.class);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("No se pudo leer el feedback almacenado de la tarea", exception);
         }
     }
 }

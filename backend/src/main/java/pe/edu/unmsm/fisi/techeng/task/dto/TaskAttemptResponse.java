@@ -9,6 +9,8 @@ public record TaskAttemptResponse(
         Long userId,
         TaskPhase phase,
         String userAnswerEn,
+        TaskFeedbackPayload llmFeedbackPayload,
+        String llmFeedbackCefr,
         Integer score,
         LocalDateTime startedAt,
         LocalDateTime submittedAt,
