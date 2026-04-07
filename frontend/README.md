@@ -51,6 +51,34 @@ bun test
 - `/review/stats`
   Métricas agregadas, heatmap de estabilidad, racha y top de tarjetas con más fallos.
 
+## Rutas admin de Sprint 5
+
+- `/admin/generated-items`
+  Bandeja de items generados con tabs por estado, formulario de generación manual y acceso al detalle.
+- `/admin/generated-items/:id`
+  Detalle del item con scores por agente, logs de verificación y acciones de aprobar o rechazar.
+- `/admin/calibration`
+  Vista administrativa de métricas IRT, tabla de dificultad y disparo manual de calibración.
+- `/admin/verification-metrics`
+  Panel de aprobación, razones de rechazo y volumen de items generados en el tiempo.
+
+## Integraciones nuevas de Sprint 5
+
+- `src/features/admin/AdminApi.ts`
+  Cliente axios para calibration y verification.
+- `src/features/admin/components/`
+  Badges y cards para score, dificultad y habilidad theta.
+- `src/components/layout/Header.tsx`
+  Dropdown admin y navegación móvil para las nuevas vistas.
+- `src/components/layout/Breadcrumbs.tsx`
+  Breadcrumbs extendidos para rutas admin.
+- `src/pages/DiagnosticTestPage.tsx`
+  Muestra dificultad calibrada cuando el ítem ya fue estimado.
+- `src/pages/DiagnosticResultPage.tsx`
+  Muestra theta, error estándar y CEFR predicho.
+- `src/pages/Dashboard.tsx`
+  Añade el KPI "Items pendientes de revisión".
+
 ## Componentes relevantes
 
 - `src/features/vocabulary/`
