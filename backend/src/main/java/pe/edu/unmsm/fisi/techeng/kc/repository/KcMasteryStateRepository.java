@@ -13,6 +13,8 @@ public interface KcMasteryStateRepository extends JpaRepository<KcMasteryState, 
 
     List<KcMasteryState> findByUserId(Long userId);
 
+    void deleteByUserId(Long userId);
+
     @Query("""
             select state
             from KcMasteryState state

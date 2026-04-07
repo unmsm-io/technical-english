@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.edu.unmsm.fisi.techeng.kc.dto.KnowledgeComponentResponse;
+import pe.edu.unmsm.fisi.techeng.kc.dto.KcStatsResponse;
+import pe.edu.unmsm.fisi.techeng.kc.dto.KnowledgeComponentDetailResponse;
 import pe.edu.unmsm.fisi.techeng.kc.entity.ItemKcMapping;
 import pe.edu.unmsm.fisi.techeng.kc.entity.KcCategory;
 import pe.edu.unmsm.fisi.techeng.kc.entity.KcItemType;
@@ -60,6 +62,37 @@ public class KcService {
                 .sorted(Comparator.comparing(KnowledgeComponent::getName))
                 .map(kcMapper::toResponse)
                 .toList();
+    }
+
+    public KnowledgeComponentDetailResponse getDetail(Long id) {
+        KnowledgeComponent knowledgeComponent = getEntityById(id);
+        List<ItemKcMapping> mappings = itemKcMappingRepository.findByKcId(id);
+        return kcMapper.toDetailResponse(
+                knowledgeComponent,
+                mappings.size(),
+                0,
+                mappings
+        );
+    }
+
+    public KcStatsResponse getStats() {
+        Map<String, Long> byCategory = new LinkedHashMap<>();
+        for (KcCategory category : KcCategory.values()) {
+            byCategory.put(
+                    category.name(),
+                    knowledgeComponentRepository.findAll().stream().filter(kc -> kc.getCategory() == category).count()
+            );
+        }
+
+        Map<String, Long> byCefr = new LinkedHashMap<>();
+        for (CefrLevel level : CefrLevel.values()) {
+            byCefr.put(
+                    level.name(),
+                    knowledgeComponentRepository.findAll().stream().filter(kc -> kc.getCefrLevel() == level).count()
+            );
+        }
+
+        return new KcStatsResponse(knowledgeComponentRepository.count(), byCategory, byCefr);
     }
 
     @Transactional

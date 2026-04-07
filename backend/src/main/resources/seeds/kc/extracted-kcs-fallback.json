@@ -1,0 +1,133 @@
+{
+  "knowledgeComponents": [
+    {
+      "name": "passive_voice",
+      "nameEs": "Voz pasiva",
+      "description": "Interpretar y producir estructuras pasivas frecuentes en documentación técnica.",
+      "category": "GRAMMAR",
+      "cefrLevel": "A2",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "present_simple_tech",
+      "nameEs": "Presente simple técnico",
+      "description": "Describir comportamiento estable de sistemas, APIs y procesos en presente simple.",
+      "category": "GRAMMAR",
+      "cefrLevel": "A2",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "error_messages_reading",
+      "nameEs": "Lectura de mensajes de error",
+      "description": "Entender stack traces, warnings y mensajes de fallo comunes.",
+      "category": "READING_COMPREHENSION",
+      "cefrLevel": "A2",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "api_documentation_reading",
+      "nameEs": "Lectura de documentación de API",
+      "description": "Leer endpoints, parámetros, respuestas y ejemplos de documentación técnica.",
+      "category": "READING_COMPREHENSION",
+      "cefrLevel": "B1",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "commit_messages_writing",
+      "nameEs": "Redacción de commit messages",
+      "description": "Escribir commits claros con verbo base e intención técnica precisa.",
+      "category": "WRITING_GENRE",
+      "cefrLevel": "A2",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "code_review_pragmatics",
+      "nameEs": "Pragmática de code review",
+      "description": "Usar tono apropiado para sugerencias, preguntas y observaciones en revisión de código.",
+      "category": "PRAGMATICS",
+      "cefrLevel": "B1",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "technical_vocabulary_general",
+      "nameEs": "Vocabulario técnico general",
+      "description": "Reconocer y usar vocabulario técnico transversal de ingeniería de software.",
+      "category": "VOCABULARY",
+      "cefrLevel": "A2",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "programming_vocabulary",
+      "nameEs": "Vocabulario de programación",
+      "description": "Comprender términos frecuentes de programación, depuración y arquitectura.",
+      "category": "VOCABULARY",
+      "cefrLevel": "B1",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "modal_verbs",
+      "nameEs": "Modal verbs",
+      "description": "Interpretar y usar modales para obligación, posibilidad y recomendación técnica.",
+      "category": "GRAMMAR",
+      "cefrLevel": "B1",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    },
+    {
+      "name": "conditionals_tech",
+      "nameEs": "Condicionales técnicos",
+      "description": "Comprender condiciones, dependencias y resultados en instrucciones técnicas.",
+      "category": "GRAMMAR",
+      "cefrLevel": "B1",
+      "pInitialLearned": 0.1,
+      "pTransition": 0.3,
+      "pGuess": 0.2,
+      "pSlip": 0.1
+    }
+  ],
+  "mappings": [
+    { "itemType": "DIAGNOSTIC", "itemId": 1, "kcs": [{ "name": "passive_voice", "nameEs": "Voz pasiva", "description": "Voz pasiva", "category": "GRAMMAR", "weight": 1.0 }] },
+    { "itemType": "DIAGNOSTIC", "itemId": 2, "kcs": [{ "name": "present_simple_tech", "nameEs": "Presente simple técnico", "description": "Presente simple", "category": "GRAMMAR", "weight": 1.0 }] },
+    { "itemType": "DIAGNOSTIC", "itemId": 3, "kcs": [{ "name": "error_messages_reading", "nameEs": "Lectura de mensajes de error", "description": "Error messages", "category": "READING_COMPREHENSION", "weight": 1.0 }] },
+    { "itemType": "DIAGNOSTIC", "itemId": 4, "kcs": [{ "name": "api_documentation_reading", "nameEs": "Lectura de documentación de API", "description": "API docs", "category": "READING_COMPREHENSION", "weight": 1.0 }] },
+    { "itemType": "DIAGNOSTIC", "itemId": 5, "kcs": [{ "name": "modal_verbs", "nameEs": "Modal verbs", "description": "Modales", "category": "GRAMMAR", "weight": 1.0 }] },
+
+    { "itemType": "TASK", "itemId": 1, "kcs": [{ "name": "error_messages_reading", "nameEs": "Lectura de mensajes de error", "description": "Error messages", "category": "READING_COMPREHENSION", "weight": 1.0 }] },
+    { "itemType": "TASK", "itemId": 2, "kcs": [{ "name": "api_documentation_reading", "nameEs": "Lectura de documentación de API", "description": "API docs", "category": "READING_COMPREHENSION", "weight": 1.0 }] },
+    { "itemType": "TASK", "itemId": 3, "kcs": [{ "name": "commit_messages_writing", "nameEs": "Redacción de commit messages", "description": "Commit messages", "category": "WRITING_GENRE", "weight": 1.0 }] },
+    { "itemType": "TASK", "itemId": 4, "kcs": [{ "name": "code_review_pragmatics", "nameEs": "Pragmática de code review", "description": "Code review", "category": "PRAGMATICS", "weight": 1.0 }] },
+    { "itemType": "TASK", "itemId": 5, "kcs": [{ "name": "conditionals_tech", "nameEs": "Condicionales técnicos", "description": "Condicionales", "category": "GRAMMAR", "weight": 1.0 }] },
+
+    { "itemType": "VOCABULARY", "itemId": 1, "kcs": [{ "name": "technical_vocabulary_general", "nameEs": "Vocabulario técnico general", "description": "Vocabulario técnico", "category": "VOCABULARY", "weight": 1.0 }] },
+    { "itemType": "VOCABULARY", "itemId": 2, "kcs": [{ "name": "technical_vocabulary_general", "nameEs": "Vocabulario técnico general", "description": "Vocabulario técnico", "category": "VOCABULARY", "weight": 1.0 }] },
+    { "itemType": "VOCABULARY", "itemId": 3, "kcs": [{ "name": "programming_vocabulary", "nameEs": "Vocabulario de programación", "description": "Programming vocabulary", "category": "VOCABULARY", "weight": 1.0 }] },
+    { "itemType": "VOCABULARY", "itemId": 4, "kcs": [{ "name": "programming_vocabulary", "nameEs": "Vocabulario de programación", "description": "Programming vocabulary", "category": "VOCABULARY", "weight": 1.0 }] },
+    { "itemType": "VOCABULARY", "itemId": 5, "kcs": [{ "name": "programming_vocabulary", "nameEs": "Vocabulario de programación", "description": "Programming vocabulary", "category": "VOCABULARY", "weight": 1.0 }] }
+  ]
+}

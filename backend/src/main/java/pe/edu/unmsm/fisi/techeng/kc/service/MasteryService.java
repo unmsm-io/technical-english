@@ -155,6 +155,15 @@ public class MasteryService {
         return (long) kcMasteryStateRepository.findMasteredByUserId(userId, MASTERY_THRESHOLD).size();
     }
 
+    @Transactional
+    public void recompute(Long userId) {
+        kcMasteryStateRepository.deleteByUserId(userId);
+        List<KcResponseLog> logs = kcResponseLogRepository.findByUserIdOrderByRespondedAtAsc(userId);
+        for (KcResponseLog log : logs) {
+            recordResponse(userId, log.getItemType(), log.getItemId(), log.isCorrect());
+        }
+    }
+
     private KcMasteryState newState(Long userId, KnowledgeComponent knowledgeComponent) {
         KcMasteryState state = new KcMasteryState();
         state.setUserId(userId);
