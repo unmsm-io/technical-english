@@ -2,6 +2,7 @@ import { ArrowRight, BookOpenCheck } from "lucide-react"
 import { Navigate, Link } from "react-router"
 import { useDiagnosticStore } from "../features/diagnostic/diagnosticStore"
 import { CefrBadge } from "../features/vocabulary/components/CefrBadge"
+import { AbilityIndicator } from "../features/admin/components/AbilityIndicator"
 
 export function DiagnosticResultPage() {
   const result = useDiagnosticStore((state) => state.result)
@@ -46,6 +47,12 @@ export function DiagnosticResultPage() {
           </div>
         </div>
       </section>
+
+      <AbilityIndicator
+        theta={result.abilityTheta}
+        standardError={result.abilityStandardError}
+        predictedCefr={result.predictedCefr}
+      />
 
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">Desglose por nivel</h2>

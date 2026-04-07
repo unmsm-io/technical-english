@@ -8,10 +8,14 @@ public record DiagnosticResultResponse(
         Long attemptId,
         Long userId,
         CefrLevel placedLevel,
+        CefrLevel placedLevelLegacy,
         int correctCount,
         int totalItems,
         Map<String, Integer> perLevelBreakdown,
         Map<String, Integer> perSkillBreakdown,
         Integer vocabularySize,
+        Double abilityTheta,
+        Double abilityStandardError,
+        CefrLevel predictedCefr,
         LocalDateTime completedAt
 ) {}

@@ -6,6 +6,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import java.time.Instant;
+import pe.edu.unmsm.fisi.techeng.calibration.dto.CalibrationStatus;
 import pe.edu.unmsm.fisi.techeng.shared.entity.BaseEntity;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 
@@ -35,6 +37,23 @@ public class DiagnosticItem extends BaseEntity {
 
     @Column(nullable = false, length = 1000)
     private String explanationEs;
+
+    @Column(nullable = false)
+    private Boolean llmGenerated = false;
+
+    private Double difficulty;
+
+    @Column(nullable = false)
+    private Double discrimination = 1.0d;
+
+    @Column(nullable = false)
+    private Integer responseCount = 0;
+
+    private Instant lastCalibratedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private CalibrationStatus calibrationStatus = CalibrationStatus.UNCALIBRATED;
 
     public CefrLevel getCefrLevel() {
         return cefrLevel;
@@ -82,5 +101,53 @@ public class DiagnosticItem extends BaseEntity {
 
     public void setExplanationEs(String explanationEs) {
         this.explanationEs = explanationEs;
+    }
+
+    public Boolean getLlmGenerated() {
+        return llmGenerated;
+    }
+
+    public void setLlmGenerated(Boolean llmGenerated) {
+        this.llmGenerated = llmGenerated;
+    }
+
+    public Double getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(Double difficulty) {
+        this.difficulty = difficulty;
+    }
+
+    public Double getDiscrimination() {
+        return discrimination;
+    }
+
+    public void setDiscrimination(Double discrimination) {
+        this.discrimination = discrimination;
+    }
+
+    public Integer getResponseCount() {
+        return responseCount;
+    }
+
+    public void setResponseCount(Integer responseCount) {
+        this.responseCount = responseCount;
+    }
+
+    public Instant getLastCalibratedAt() {
+        return lastCalibratedAt;
+    }
+
+    public void setLastCalibratedAt(Instant lastCalibratedAt) {
+        this.lastCalibratedAt = lastCalibratedAt;
+    }
+
+    public CalibrationStatus getCalibrationStatus() {
+        return calibrationStatus;
+    }
+
+    public void setCalibrationStatus(CalibrationStatus calibrationStatus) {
+        this.calibrationStatus = calibrationStatus;
     }
 }

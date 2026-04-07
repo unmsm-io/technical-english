@@ -1,6 +1,7 @@
 package pe.edu.unmsm.fisi.techeng.user.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -53,6 +54,12 @@ public class User extends BaseEntity {
     private Boolean diagnosticCompleted = false;
 
     private LocalDateTime diagnosticCompletedAt;
+
+    private Double abilityTheta;
+
+    private Double abilityStandardError;
+
+    private Instant lastAbilityUpdate;
 
     @Column(nullable = false)
     private Boolean active = true;

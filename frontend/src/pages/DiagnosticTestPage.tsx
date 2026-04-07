@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Navigate, useNavigate } from "react-router"
 import { submitDiagnostic } from "../features/diagnostic/DiagnosticApi"
 import { useDiagnosticStore } from "../features/diagnostic/diagnosticStore"
+import { DifficultyBadge } from "../features/admin/components/DifficultyBadge"
 
 export function DiagnosticTestPage() {
   const navigate = useNavigate()
@@ -76,6 +77,12 @@ export function DiagnosticTestPage() {
           <span>{currentItem.skill}</span>
           <span>·</span>
           <span>{currentItem.cefrLevel}</span>
+          {currentItem.difficulty !== undefined ? (
+            <>
+              <span>·</span>
+              <DifficultyBadge difficulty={currentItem.difficulty ?? null} />
+            </>
+          ) : null}
         </div>
         <h1 className="text-xl font-semibold leading-8 text-gray-900">
           {currentItem.questionText}

@@ -1,0 +1,138 @@
+[
+  {
+    "cefrLevel": "A2",
+    "skill": "VOCAB",
+    "bloomLevel": "REMEMBER",
+    "topicHint": "NullPointerException",
+    "output": {
+      "questionTextEn": "What does `NullPointerException` usually mean in Java?",
+      "options": [
+        "A variable was used before it had a value",
+        "A loop ran too many times",
+        "A file was too large",
+        "A method name was too short"
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "`NullPointerException` means the program tried to use an object reference that was null."
+    }
+  },
+  {
+    "cefrLevel": "A2",
+    "skill": "GRAMMAR",
+    "bloomLevel": "UNDERSTAND",
+    "topicHint": "--verbose",
+    "output": {
+      "questionTextEn": "Which sentence best explains what the `--verbose` flag does?",
+      "options": [
+        "It shows more detailed output.",
+        "It deletes log files.",
+        "It changes the programming language.",
+        "It closes the terminal."
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "The `--verbose` flag usually increases the amount of information shown in command output."
+    }
+  },
+  {
+    "cefrLevel": "B1",
+    "skill": "READING",
+    "bloomLevel": "APPLY",
+    "topicHint": "REST API",
+    "output": {
+      "questionTextEn": "A REST API returns status 401. What should the client check first?",
+      "options": [
+        "Whether the authentication token is missing or expired",
+        "Whether the database schema changed",
+        "Whether the CSS file loaded correctly",
+        "Whether the browser cache was cleared"
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "HTTP 401 means unauthorized, so the first check is the authentication credentials or token."
+    }
+  },
+  {
+    "cefrLevel": "B1",
+    "skill": "VOCAB",
+    "bloomLevel": "UNDERSTAND",
+    "topicHint": "refactor",
+    "output": {
+      "questionTextEn": "In software development, what does refactor mean?",
+      "options": [
+        "Change code structure without changing its external behavior",
+        "Add a new feature to production",
+        "Translate comments into another language",
+        "Restart a broken server"
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "Refactoring improves the internal design of code while keeping the same behavior for users."
+    }
+  },
+  {
+    "cefrLevel": "B2",
+    "skill": "READING",
+    "bloomLevel": "ANALYZE",
+    "topicHint": "race condition",
+    "output": {
+      "questionTextEn": "Which situation is the best example of a race condition?",
+      "options": [
+        "Two threads update the same shared counter without synchronization",
+        "A test suite takes too long to run",
+        "A README file uses outdated screenshots",
+        "A web page loads many images at once"
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "A race condition happens when concurrent operations access shared state in an unsafe order."
+    }
+  },
+  {
+    "cefrLevel": "B2",
+    "skill": "GRAMMAR",
+    "bloomLevel": "APPLY",
+    "topicHint": "deployment pipeline",
+    "output": {
+      "questionTextEn": "Choose the best sentence for a deployment report.",
+      "options": [
+        "The deployment pipeline was paused after the health checks failed.",
+        "The deployment pipeline pause after the health checks fail.",
+        "The deployment pipeline is pausing yesterday by failed checks.",
+        "The deployment pipeline have paused because checks was fail."
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "The first option uses correct passive voice and past tense for a completed technical event."
+    }
+  },
+  {
+    "cefrLevel": "C1",
+    "skill": "READING",
+    "bloomLevel": "EVALUATE",
+    "topicHint": "eventual consistency",
+    "output": {
+      "questionTextEn": "Why might a distributed system choose eventual consistency instead of strong consistency?",
+      "options": [
+        "To improve availability and partition tolerance in exchange for temporary stale reads",
+        "To guarantee every read always returns the latest write",
+        "To remove the need for monitoring and alerts",
+        "To make network latency irrelevant"
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "Eventual consistency is often selected to keep systems available under network partitions, accepting short-lived inconsistency."
+    }
+  },
+  {
+    "cefrLevel": "C1",
+    "skill": "VOCAB",
+    "bloomLevel": "CREATE",
+    "topicHint": "idempotent",
+    "output": {
+      "questionTextEn": "Which definition best fits an idempotent HTTP operation?",
+      "options": [
+        "Repeating the same request produces the same resulting state",
+        "The request always finishes faster than one second",
+        "The response always contains JSON arrays",
+        "The endpoint requires a browser cookie"
+      ],
+      "correctAnswerIdx": 0,
+      "explanationEn": "An idempotent operation can be applied multiple times without changing the final resource state after the first successful call."
+    }
+  }
+]

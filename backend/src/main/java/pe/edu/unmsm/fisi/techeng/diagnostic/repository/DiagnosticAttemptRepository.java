@@ -8,5 +8,7 @@ public interface DiagnosticAttemptRepository extends JpaRepository<DiagnosticAtt
 
     List<DiagnosticAttempt> findByUserIdOrderByStartedAtDesc(Long userId);
 
+    List<DiagnosticAttempt> findByCompletedAtIsNotNullOrderByIdAsc();
+
     long countByCompletedAtIsNotNull();
 }

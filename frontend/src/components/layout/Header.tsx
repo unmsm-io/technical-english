@@ -10,9 +10,13 @@ import {
   Brain,
   Menu,
   X,
+  ShieldCheck,
+  Sparkles,
+  Gauge,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { cn } from "../../lib/utils"
+import { getUsers } from "../../api/users"
 
 const navItems = [
   { to: "/", label: "Inicio", icon: BarChart3 },
@@ -28,6 +32,18 @@ const navItems = [
 export function Header() {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
+
+  useEffect(() => {
+    getUsers(0, 100)
+      .then((page) => {
+        setShowAdmin(page.content.some((user) => user.role === "ADMIN"))
+      })
+      .catch(() => {
+        setShowAdmin(false)
+      })
+  }, [])
 
   const linkClass = (active: boolean) =>
     cn(
@@ -68,6 +84,43 @@ export function Header() {
             </nav>
           </div>
           <div className="hidden items-center gap-2 md:flex">
+            {showAdmin ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAdminOpen((value) => !value)}
+                  className={linkClass(location.pathname.startsWith("/admin"))}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin
+                </button>
+                {adminOpen ? (
+                  <div className="absolute right-0 top-12 z-20 w-56 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl">
+                    <Link
+                      to="/admin/generated-items"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Items generados
+                    </Link>
+                    <Link
+                      to="/admin/calibration"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                      <Gauge className="h-4 w-4" />
+                      Calibración
+                    </Link>
+                    <Link
+                      to="/admin/verification-metrics"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      Métricas
+                    </Link>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <span className="text-sm text-gray-500">UNMSM FISI</span>
           </div>
           <button
@@ -98,6 +151,34 @@ export function Header() {
                 </Link>
               )
             })}
+            {showAdmin ? (
+              <>
+                <Link
+                  to="/admin/generated-items"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass(location.pathname.startsWith("/admin/generated-items"))}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Items generados
+                </Link>
+                <Link
+                  to="/admin/calibration"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass(location.pathname.startsWith("/admin/calibration"))}
+                >
+                  <Gauge className="h-4 w-4" />
+                  Calibración
+                </Link>
+                <Link
+                  to="/admin/verification-metrics"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass(location.pathname.startsWith("/admin/verification-metrics"))}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Métricas admin
+                </Link>
+              </>
+            ) : null}
           </nav>
         ) : null}
       </div>

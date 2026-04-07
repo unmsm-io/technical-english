@@ -5,14 +5,18 @@ import { getDashboardStats } from "../api/analytics"
 import { getUsers } from "../api/users"
 import { ReviewApi } from "../features/review/ReviewApi"
 import { TaskApi } from "../features/task/TaskApi"
+import { AdminApi } from "../features/admin/AdminApi"
 import type { DashboardStats as DashboardStatsType } from "../types/diagnostic"
 import type { ReviewStats, TaskStats, User } from "../types"
+import type { VerificationMetrics } from "../types/admin"
 
 export function Dashboard() {
   const [statsData, setStatsData] = useState<DashboardStatsType | null>(null)
   const [taskStats, setTaskStats] = useState<TaskStats | null>(null)
   const [taskReadyUser, setTaskReadyUser] = useState<User | null>(null)
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null)
+  const [verificationMetrics, setVerificationMetrics] =
+    useState<VerificationMetrics | null>(null)
 
   useEffect(() => {
     getDashboardStats()
@@ -21,6 +25,10 @@ export function Dashboard() {
 
     TaskApi.getStats()
       .then(setTaskStats)
+      .catch(() => {})
+
+    AdminApi.getMetrics()
+      .then(setVerificationMetrics)
       .catch(() => {})
 
     getUsers(0, 100)
@@ -82,6 +90,13 @@ export function Dashboard() {
       href: "/tasks",
       color: "bg-slate-500",
     },
+    {
+      label: "Items pendientes de revisión",
+      value: verificationMetrics?.pendingCount ?? 0,
+      icon: ClipboardCheck,
+      href: "/admin/generated-items",
+      color: "bg-indigo-500",
+    },
   ]
 
   return (
@@ -93,7 +108,7 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-7">
         {stats.map((stat) => (
           <Link
             key={stat.label}

@@ -23,6 +23,8 @@ import pe.edu.unmsm.fisi.techeng.review.service.ReviewCardService;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.shared.exception.ResourceNotFoundException;
+import pe.edu.unmsm.fisi.techeng.calibration.dto.EapEstimate;
+import pe.edu.unmsm.fisi.techeng.calibration.service.CalibrationService;
 import pe.edu.unmsm.fisi.techeng.user.entity.User;
 import pe.edu.unmsm.fisi.techeng.user.repository.UserRepository;
 
@@ -36,6 +38,7 @@ public class DiagnosticService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final ReviewCardService reviewCardService;
+    private final CalibrationService calibrationService;
 
     public DiagnosticAttemptStartResponse startAttempt(Long userId) {
         User user = userRepository.findById(userId)
@@ -111,27 +114,34 @@ public class DiagnosticService {
             }
         }
 
-        CefrLevel placement = computePlacement(perLevelBreakdown);
-        Integer vocabularySize = vocabularySizeForLevel(placement);
+        CefrLevel placementLegacy = computePlacement(perLevelBreakdown);
 
         attempt.setResponsesJson(writeValue(responses));
         attempt.setCorrectCount(correctCount);
-        attempt.setPlacedLevel(placement);
+        attempt.setPlacedLevel(placementLegacy);
         attempt.setCompletedAt(LocalDateTime.now());
         attempt.setPerLevelBreakdownJson(writeValue(perLevelBreakdown));
         attempt.setPerSkillBreakdownJson(writeValue(perSkillBreakdown));
         DiagnosticAttempt savedAttempt = diagnosticAttemptRepository.save(attempt);
 
+        EapEstimate abilityEstimate = calibrationService.updateAbilityFromAttempt(attempt.getUserId(), savedAttempt);
+        CefrLevel predictedCefr = calibrationService.predictLevel(abilityEstimate.theta());
+        CefrLevel finalPlacement = placementLegacy;
+        if (predictedCefr != null && calibrationService.hasEnoughCalibratedItems()) {
+            finalPlacement = predictedCefr;
+        }
+        Integer vocabularySize = vocabularySizeForLevel(finalPlacement);
+
         User user = userRepository.findById(attempt.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + attempt.getUserId()));
-        user.setEnglishLevel(placement.name());
+        user.setEnglishLevel(finalPlacement.name());
         user.setDiagnosticCompleted(Boolean.TRUE);
         user.setDiagnosticCompletedAt(savedAttempt.getCompletedAt());
         user.setVocabularySize(vocabularySize);
         userRepository.save(user);
 
         try {
-            reviewCardService.bootstrapForUser(user.getId(), placement);
+            reviewCardService.bootstrapForUser(user.getId(), finalPlacement);
         } catch (Exception exception) {
             org.slf4j.LoggerFactory.getLogger(DiagnosticService.class)
                     .warn("Review bootstrap failed for user {}", user.getId(), exception);
@@ -140,12 +150,16 @@ public class DiagnosticService {
         return new DiagnosticResultResponse(
                 savedAttempt.getId(),
                 savedAttempt.getUserId(),
-                placement,
+                finalPlacement,
+                placementLegacy,
                 correctCount,
                 items.size(),
                 perLevelBreakdown,
                 perSkillBreakdown,
                 vocabularySize,
+                abilityEstimate.theta(),
+                abilityEstimate.standardError(),
+                predictedCefr,
                 savedAttempt.getCompletedAt()
         );
     }
@@ -205,7 +219,8 @@ public class DiagnosticService {
                 item.getCefrLevel(),
                 item.getSkill(),
                 item.getQuestionText(),
-                readOptions(item.getOptionsJson())
+                readOptions(item.getOptionsJson()),
+                item.getDifficulty()
         );
     }
 

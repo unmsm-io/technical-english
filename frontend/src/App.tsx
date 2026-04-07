@@ -18,6 +18,10 @@ import { TaskResultPage } from "./pages/TaskResultPage"
 import { ReviewSessionPage } from "./pages/ReviewSessionPage"
 import { ReviewDeckPage } from "./pages/ReviewDeckPage"
 import { ReviewStatsPage } from "./pages/ReviewStatsPage"
+import { AdminGeneratedItemsPage } from "./pages/AdminGeneratedItemsPage"
+import { AdminGeneratedItemDetailPage } from "./pages/AdminGeneratedItemDetailPage"
+import { AdminCalibrationPage } from "./pages/AdminCalibrationPage"
+import { AdminVerificationMetricsPage } from "./pages/AdminVerificationMetricsPage"
 
 export default function App() {
   return (
@@ -42,6 +46,10 @@ export default function App() {
         <Route path="review/session" element={<ReviewSessionPage />} />
         <Route path="review/deck" element={<ReviewDeckPage />} />
         <Route path="review/stats" element={<ReviewStatsPage />} />
+        <Route path="admin/generated-items" element={<AdminGeneratedItemsPage />} />
+        <Route path="admin/generated-items/:id" element={<AdminGeneratedItemDetailPage />} />
+        <Route path="admin/calibration" element={<AdminCalibrationPage />} />
+        <Route path="admin/verification-metrics" element={<AdminVerificationMetricsPage />} />
       </Route>
     </Routes>
   )

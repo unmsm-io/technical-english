@@ -9,5 +9,6 @@ public record DiagnosticItemResponse(
         CefrLevel cefrLevel,
         DiagnosticSkill skill,
         String questionText,
-        List<String> options
+        List<String> options,
+        Double difficulty
 ) {}
