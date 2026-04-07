@@ -14,6 +14,10 @@ const segmentLabels: Record<string, string> = {
   result: "Resultado",
   run: "Ejecución",
   content: "Contenido",
+  review: "Repaso",
+  session: "Sesión",
+  deck: "Deck",
+  stats: "Estadísticas",
 }
 
 export function Breadcrumbs() {

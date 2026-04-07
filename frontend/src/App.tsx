@@ -15,6 +15,9 @@ import { TaskListPage } from "./pages/TaskListPage"
 import { TaskDetailPage } from "./pages/TaskDetailPage"
 import { TaskRunnerPage } from "./pages/TaskRunnerPage"
 import { TaskResultPage } from "./pages/TaskResultPage"
+import { ReviewSessionPage } from "./pages/ReviewSessionPage"
+import { ReviewDeckPage } from "./pages/ReviewDeckPage"
+import { ReviewStatsPage } from "./pages/ReviewStatsPage"
 
 export default function App() {
   return (
@@ -36,6 +39,9 @@ export default function App() {
         <Route path="tasks/:id" element={<TaskDetailPage />} />
         <Route path="tasks/:id/run" element={<TaskRunnerPage />} />
         <Route path="tasks/:id/result/:attemptId" element={<TaskResultPage />} />
+        <Route path="review/session" element={<ReviewSessionPage />} />
+        <Route path="review/deck" element={<ReviewDeckPage />} />
+        <Route path="review/stats" element={<ReviewStatsPage />} />
       </Route>
     </Routes>
   )

@@ -13,9 +13,11 @@ import {
 } from "lucide-react"
 import { deleteUser, getUser, patchUserProfile } from "../../api/users"
 import { getDiagnosticHistory } from "../diagnostic/DiagnosticApi"
+import { ReviewApi } from "../review/ReviewApi"
 import { TaskApi } from "../task/TaskApi"
 import { TaskTypeBadge } from "../task/components/TaskTypeBadge"
 import type { DiagnosticAttemptHistory } from "../../types/diagnostic"
+import type { ReviewStats } from "../../types/review"
 import type { TaskAttemptHistoryItem } from "../../types/task"
 import type { User } from "../../types"
 
@@ -34,6 +36,7 @@ export function UserProfile() {
   const [user, setUser] = useState<User | null>(null)
   const [history, setHistory] = useState<DiagnosticAttemptHistory[]>([])
   const [taskHistory, setTaskHistory] = useState<TaskAttemptHistoryItem[]>([])
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -48,6 +51,9 @@ export function UserProfile() {
         setHistory(historyData)
         setTaskHistory(taskHistoryData)
         setSelectedSkills(userData.targetSkills)
+        if (userData.englishLevel) {
+          ReviewApi.getStats(userId).then(setReviewStats).catch(() => setReviewStats(null))
+        }
       })
       .catch(() => setError("No se pudo cargar el perfil del usuario."))
       .finally(() => setLoading(false))
@@ -264,6 +270,40 @@ export function UserProfile() {
           {saveMessage ? <p className="text-sm text-emerald-600">{saveMessage}</p> : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Mi deck de vocabulario</h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Resumen del estado actual del repaso espaciado para este estudiante.
+            </p>
+          </div>
+          {user.englishLevel ? (
+            <Link
+              to={`/review/deck?userId=${user.id}`}
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+            >
+              Ver deck completo
+            </Link>
+          ) : null}
+        </div>
+
+        {reviewStats ? (
+          <div className="mt-5 grid gap-4 md:grid-cols-4">
+            <MetricCard label="Cards totales" value={`${reviewStats.totalCards}`} />
+            <MetricCard label="Para hoy" value={`${reviewStats.dueToday}`} />
+            <MetricCard label="Retention" value={`${reviewStats.retentionRate}%`} />
+            <MetricCard label="Longest streak" value={`${reviewStats.longestStreak} días`} />
+          </div>
+        ) : (
+          <div className="mt-5 rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500">
+            {user.englishLevel
+              ? "No se pudo cargar el deck de vocabulario."
+              : "Toma el diagnóstico primero para generar el deck de vocabulario."}
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

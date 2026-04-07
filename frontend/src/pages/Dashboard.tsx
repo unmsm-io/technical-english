@@ -3,14 +3,16 @@ import { Link } from "react-router"
 import { Users, Languages, ClipboardCheck, BarChart3, ListChecks } from "lucide-react"
 import { getDashboardStats } from "../api/analytics"
 import { getUsers } from "../api/users"
+import { ReviewApi } from "../features/review/ReviewApi"
 import { TaskApi } from "../features/task/TaskApi"
 import type { DashboardStats as DashboardStatsType } from "../types/diagnostic"
-import type { TaskStats, User } from "../types"
+import type { ReviewStats, TaskStats, User } from "../types"
 
 export function Dashboard() {
   const [statsData, setStatsData] = useState<DashboardStatsType | null>(null)
   const [taskStats, setTaskStats] = useState<TaskStats | null>(null)
   const [taskReadyUser, setTaskReadyUser] = useState<User | null>(null)
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null)
 
   useEffect(() => {
     getDashboardStats()
@@ -23,7 +25,11 @@ export function Dashboard() {
 
     getUsers(0, 100)
       .then((page) => {
-        setTaskReadyUser(page.content.find((user) => Boolean(user.englishLevel)) ?? null)
+        const readyUser = page.content.find((user) => Boolean(user.englishLevel)) ?? null
+        setTaskReadyUser(readyUser)
+        if (readyUser) {
+          ReviewApi.getStats(readyUser.id).then(setReviewStats).catch(() => {})
+        }
       })
       .catch(() => {})
   }, [])
@@ -63,6 +69,13 @@ export function Dashboard() {
       color: "bg-amber-500",
     },
     {
+      label: "Cards para repasar hoy",
+      value: reviewStats?.dueToday ?? 0,
+      icon: BarChart3,
+      href: taskReadyUser ? `/review/session?userId=${taskReadyUser.id}` : "/review/session",
+      color: "bg-rose-500",
+    },
+    {
       label: "Tareas TBLT disponibles",
       value: taskStats?.totalTasks ?? 0,
       icon: ListChecks,
@@ -80,7 +93,7 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
         {stats.map((stat) => (
           <Link
             key={stat.label}
@@ -134,6 +147,14 @@ export function Dashboard() {
                 Empezar tarea de mi nivel
               </Link>
             ) : null}
+            {taskReadyUser ? (
+              <Link
+                to={`/review/session?userId=${taskReadyUser.id}`}
+                className="block rounded-lg border border-gray-200 p-3 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Comenzar repaso
+              </Link>
+            ) : null}
           </div>
         </div>
 
@@ -151,6 +172,16 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {reviewStats && taskReadyUser ? (
+        <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-6">
+          <h2 className="text-lg font-medium text-blue-950">Última preparación de repaso</h2>
+          <p className="mt-2 text-sm text-blue-800">
+            {taskReadyUser.firstName} tiene {reviewStats.dueToday} cards para hoy y una retención reciente de{" "}
+            {reviewStats.retentionRate}%.
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }
