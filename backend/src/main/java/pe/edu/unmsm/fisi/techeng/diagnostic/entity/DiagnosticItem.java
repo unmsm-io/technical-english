@@ -38,6 +38,9 @@ public class DiagnosticItem extends BaseEntity {
     @Column(nullable = false, length = 1000)
     private String explanationEs;
 
+    @Column(nullable = false)
+    private Boolean llmGenerated = false;
+
     private Double difficulty;
 
     @Column(nullable = false)
@@ -98,6 +101,14 @@ public class DiagnosticItem extends BaseEntity {
 
     public void setExplanationEs(String explanationEs) {
         this.explanationEs = explanationEs;
+    }
+
+    public Boolean getLlmGenerated() {
+        return llmGenerated;
+    }
+
+    public void setLlmGenerated(Boolean llmGenerated) {
+        this.llmGenerated = llmGenerated;
     }
 
     public Double getDifficulty() {
