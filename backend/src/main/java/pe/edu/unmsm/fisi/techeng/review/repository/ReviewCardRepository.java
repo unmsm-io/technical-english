@@ -19,6 +19,8 @@ public interface ReviewCardRepository extends JpaRepository<ReviewCard, Long> {
 
     boolean existsByUserId(Long userId);
 
+    List<ReviewCard> findByUserId(Long userId);
+
     long countByUserId(Long userId);
 
     long countByUserIdAndState(Long userId, CardState state);

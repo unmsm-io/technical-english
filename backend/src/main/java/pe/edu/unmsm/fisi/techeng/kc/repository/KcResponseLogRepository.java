@@ -14,5 +14,7 @@ public interface KcResponseLogRepository extends JpaRepository<KcResponseLog, Lo
 
     List<KcResponseLog> findByUserIdAndKcIdOrderByRespondedAtDesc(Long userId, Long kcId, Pageable pageable);
 
+    List<KcResponseLog> findByUserIdAndRespondedAtAfter(Long userId, Instant since);
+
     List<KcResponseLog> findByKcIdAndRespondedAtAfter(Long kcId, Instant since);
 }
