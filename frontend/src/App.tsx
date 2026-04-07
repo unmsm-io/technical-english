@@ -5,6 +5,12 @@ import { ContentPage } from "./pages/ContentPage"
 import { UserList } from "./features/users/UserList"
 import { UserForm } from "./features/users/UserForm"
 import { UserProfile } from "./features/users/UserProfile"
+import { VocabularyPage } from "./pages/VocabularyPage"
+import { VocabularyDetailPage } from "./pages/VocabularyDetailPage"
+import { ProfilerPage } from "./pages/ProfilerPage"
+import { DiagnosticStartPage } from "./pages/DiagnosticStartPage"
+import { DiagnosticTestPage } from "./pages/DiagnosticTestPage"
+import { DiagnosticResultPage } from "./pages/DiagnosticResultPage"
 
 export default function App() {
   return (
@@ -16,6 +22,12 @@ export default function App() {
         <Route path="users/:id" element={<UserProfile />} />
         <Route path="users/:id/edit" element={<UserForm />} />
         <Route path="content" element={<ContentPage />} />
+        <Route path="vocabulary" element={<VocabularyPage />} />
+        <Route path="vocabulary/:id" element={<VocabularyDetailPage />} />
+        <Route path="profiler" element={<ProfilerPage />} />
+        <Route path="diagnostic/start" element={<DiagnosticStartPage />} />
+        <Route path="diagnostic/test" element={<DiagnosticTestPage />} />
+        <Route path="diagnostic/result" element={<DiagnosticResultPage />} />
       </Route>
     </Routes>
   )

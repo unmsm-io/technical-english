@@ -10,6 +10,10 @@ export interface User {
   role: UserRole
   faculty: string | null
   englishLevel: string | null
+  targetSkills: string[]
+  vocabularySize: number | null
+  diagnosticCompleted: boolean
+  diagnosticCompletedAt: string | null
   active: boolean
   createdAt: string
   updatedAt: string
@@ -41,6 +45,10 @@ export interface CreateUserRequest {
   role: UserRole
   faculty?: string
   englishLevel?: string
+  targetSkills?: string[]
+  vocabularySize?: number
+  diagnosticCompleted?: boolean
+  diagnosticCompletedAt?: string
 }
 
 export interface UpdateUserRequest {
@@ -50,4 +58,8 @@ export interface UpdateUserRequest {
   role?: UserRole
   faculty?: string
   englishLevel?: string
+  targetSkills?: string[]
+  vocabularySize?: number
+  diagnosticCompleted?: boolean
+  diagnosticCompletedAt?: string
 }

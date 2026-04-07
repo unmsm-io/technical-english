@@ -36,6 +36,17 @@ export async function updateUser(id: number, request: UpdateUserRequest) {
   return data.data
 }
 
+export async function patchUserProfile(
+  id: number,
+  request: Pick<
+    UpdateUserRequest,
+    "targetSkills" | "vocabularySize" | "diagnosticCompleted" | "diagnosticCompletedAt"
+  >
+) {
+  const { data } = await api.patch<ApiResponse<User>>(`/users/${id}/profile`, request)
+  return data.data
+}
+
 export async function deleteUser(id: number) {
   await api.delete(`/users/${id}`)
 }

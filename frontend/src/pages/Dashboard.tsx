@@ -1,22 +1,52 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
-import { Users, BookOpen, Brain, BarChart3 } from "lucide-react"
-import { getUsers } from "../api/users"
+import { Users, Languages, ClipboardCheck, BarChart3 } from "lucide-react"
+import { getDashboardStats } from "../api/analytics"
+import type { DashboardStats as DashboardStatsType } from "../types/diagnostic"
 
 export function Dashboard() {
-  const [userCount, setUserCount] = useState(0)
+  const [statsData, setStatsData] = useState<DashboardStatsType | null>(null)
 
   useEffect(() => {
-    getUsers(0, 1)
-      .then((data) => setUserCount(data.totalElements))
+    getDashboardStats()
+      .then(setStatsData)
       .catch(() => {})
   }, [])
 
+  const vocabularyTotal = Object.values(statsData?.vocabularyByLayer ?? {}).reduce(
+    (total, current) => total + current,
+    0
+  )
+
   const stats = [
-    { label: "Users", value: userCount, icon: Users, href: "/users", color: "bg-blue-500" },
-    { label: "Modules", value: 0, icon: BookOpen, href: "/content", color: "bg-green-500" },
-    { label: "Exercises", value: 0, icon: Brain, href: "#", color: "bg-purple-500" },
-    { label: "Completions", value: 0, icon: BarChart3, href: "#", color: "bg-orange-500" },
+    {
+      label: "Usuarios activos",
+      value: statsData?.totalUsers ?? 0,
+      icon: Users,
+      href: "/users",
+      color: "bg-blue-500",
+    },
+    {
+      label: "Vocabulario total",
+      value: vocabularyTotal,
+      icon: Languages,
+      href: "/vocabulary",
+      color: "bg-emerald-500",
+    },
+    {
+      label: "Diagnósticos completos",
+      value: statsData?.diagnosticsCompleted ?? 0,
+      icon: ClipboardCheck,
+      href: "/diagnostic/start",
+      color: "bg-violet-500",
+    },
+    {
+      label: "Promedio vocabular",
+      value: Math.round(statsData?.averageVocabularySize ?? 0),
+      icon: BarChart3,
+      href: "/users",
+      color: "bg-amber-500",
+    },
   ]
 
   return (
@@ -24,7 +54,7 @@ export function Dashboard() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Technical English Learning Platform - UNMSM FISI
+          Plataforma de ingles tecnico para UNMSM FISI
         </p>
       </div>
 
@@ -53,41 +83,40 @@ export function Dashboard() {
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-medium text-gray-900">
-            Quick Actions
+            Acciones rápidas
           </h2>
           <div className="space-y-2">
             <Link
               to="/users/new"
               className="block rounded-lg border border-gray-200 p-3 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >
-              Register a new student
+              Registrar un nuevo estudiante
             </Link>
             <Link
-              to="/content"
+              to="/diagnostic/start"
               className="block rounded-lg border border-gray-200 p-3 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >
-              Browse course content
+              Tomar diagnóstico
+            </Link>
+            <Link
+              to="/vocabulary"
+              className="block rounded-lg border border-gray-200 p-3 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              Explorar vocabulario
             </Link>
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-medium text-gray-900">
-            About the Platform
+            Capas de vocabulario
           </h2>
-          <p className="text-sm leading-relaxed text-gray-600">
-            Sistema de recomendacion para el Aprendizaje de Ingles Tecnico
-            Basico para Profesionales de Ciencias e Ingenieria. Built with
-            Spring Boot microservices and LLM integration.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {["Spring Boot", "React", "PostgreSQL", "LLM"].map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600"
-              >
-                {tag}
-              </span>
+          <div className="space-y-3 text-sm text-gray-600">
+            {Object.entries(statsData?.vocabularyByLayer ?? {}).map(([layer, total]) => (
+              <div key={layer} className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
+                <span>{layer}</span>
+                <span className="font-semibold text-gray-900">{total}</span>
+              </div>
             ))}
           </div>
         </div>
