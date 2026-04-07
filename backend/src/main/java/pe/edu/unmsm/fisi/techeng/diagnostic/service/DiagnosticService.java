@@ -19,6 +19,7 @@ import pe.edu.unmsm.fisi.techeng.diagnostic.entity.DiagnosticItem;
 import pe.edu.unmsm.fisi.techeng.diagnostic.entity.DiagnosticSkill;
 import pe.edu.unmsm.fisi.techeng.diagnostic.repository.DiagnosticAttemptRepository;
 import pe.edu.unmsm.fisi.techeng.diagnostic.repository.DiagnosticItemRepository;
+import pe.edu.unmsm.fisi.techeng.review.service.ReviewCardService;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.shared.exception.ResourceNotFoundException;
@@ -34,6 +35,7 @@ public class DiagnosticService {
     private final DiagnosticAttemptRepository diagnosticAttemptRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final ReviewCardService reviewCardService;
 
     public DiagnosticAttemptStartResponse startAttempt(Long userId) {
         User user = userRepository.findById(userId)
@@ -127,6 +129,13 @@ public class DiagnosticService {
         user.setDiagnosticCompletedAt(savedAttempt.getCompletedAt());
         user.setVocabularySize(vocabularySize);
         userRepository.save(user);
+
+        try {
+            reviewCardService.bootstrapForUser(user.getId(), placement);
+        } catch (Exception exception) {
+            org.slf4j.LoggerFactory.getLogger(DiagnosticService.class)
+                    .warn("Review bootstrap failed for user {}", user.getId(), exception);
+        }
 
         return new DiagnosticResultResponse(
                 savedAttempt.getId(),

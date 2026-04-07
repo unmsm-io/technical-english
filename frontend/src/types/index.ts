@@ -65,3 +65,4 @@ export interface UpdateUserRequest {
 }
 
 export * from "./task"
+export * from "./review"

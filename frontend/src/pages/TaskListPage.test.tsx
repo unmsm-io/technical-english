@@ -59,6 +59,27 @@ mock.module("../features/task/TaskApi", () => ({
 }))
 
 mock.module("../api/users", () => ({
+  getUsers: mock(async () => ({
+    content: [
+      {
+        id: 7,
+        codigo: "20201234",
+        firstName: "Ana",
+        lastName: "Torres",
+        email: "ana@example.com",
+        role: "STUDENT" as const,
+        faculty: "FISI",
+        englishLevel: "B1",
+        targetSkills: [],
+        vocabularySize: 2000,
+        diagnosticCompleted: true,
+        diagnosticCompletedAt: "2026-04-07T00:00:00",
+        active: true,
+        createdAt: "2026-04-07T00:00:00",
+        updatedAt: "2026-04-07T00:00:00",
+      },
+    ],
+  })),
   getUser: mock(async () => ({
     id: 7,
     codigo: "20201234",
