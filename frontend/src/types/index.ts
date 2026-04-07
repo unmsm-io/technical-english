@@ -63,3 +63,5 @@ export interface UpdateUserRequest {
   diagnosticCompleted?: boolean
   diagnosticCompletedAt?: string
 }
+
+export * from "./task"
