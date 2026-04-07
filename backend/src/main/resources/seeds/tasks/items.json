@@ -1,0 +1,72 @@
+[
+  {
+    "taskType": "ERROR_MESSAGE",
+    "cefrLevel": "A2",
+    "titleEs": "Explicar un NullPointerException en Spring Boot",
+    "descriptionEs": "Lee el stack trace y explica la causa raiz al ingeniero de guardia.",
+    "preTaskContextEn": "You are reviewing an incident in a Spring Boot service after a failed checkout request. The on-call engineer needs a simple explanation before escalating the bug.",
+    "preTaskGlossesJson": "[{\"term\":\"stack trace\",\"gloss\":\"lista de llamadas que muestra donde ocurrio el error\"},{\"term\":\"null check\",\"gloss\":\"validacion para evitar usar un objeto vacio\"}]",
+    "preTaskVocabTerms": ["error", "system", "problem"],
+    "duringTaskPromptEn": "java.lang.NullPointerException: Cannot invoke \"User.getEmail()\" because \"user\" is null\n\tat com.acme.checkout.NotificationService.sendReceipt(NotificationService.java:42)\n\tat com.acme.checkout.OrderController.createOrder(OrderController.java:78)",
+    "duringTaskInstructionEs": "Escribe en ingles 2 o 3 frases: indica la causa raiz, la linea donde ocurre y la primera accion recomendada.",
+    "expectedAnswerEn": "The error happens in NotificationService.sendReceipt at line 42 because the code calls user.getEmail() when the user object is null. The user probably comes from OrderController.createOrder at line 78. The team should first check the user lookup and add a null check before sending the receipt.",
+    "postTaskLanguageFocus": "{\"grammar\":\"present simple for technical explanation\",\"discourseMarkers\":[\"because\",\"first\"],\"keyCollocations\":[\"null check\",\"root cause\",\"line 42\"]}",
+    "postTaskExplanationEs": "Las explicaciones tecnicas claras usan present simple y conectores de causa como because. Tambien conviene nombrar la linea y la accion siguiente con first."
+  },
+  {
+    "taskType": "API_DOC",
+    "cefrLevel": "B1",
+    "titleEs": "Resumir una seccion de autenticacion de API",
+    "descriptionEs": "Lee una seccion de documentacion y resume como autenticar una solicitud.",
+    "preTaskContextEn": "You joined a backend squad that integrates with a payments API. A teammate asks you to explain the authentication rules before they build the client.",
+    "preTaskGlossesJson": "[{\"term\":\"header\",\"gloss\":\"campo enviado en la solicitud HTTP\"},{\"term\":\"Bearer token\",\"gloss\":\"token de acceso que se envia en Authorization\"}]",
+    "preTaskVocabTerms": ["function", "process", "method"],
+    "duringTaskPromptEn": "Authentication\nAll requests must include an Authorization header with a Bearer token.\nExample: Authorization: Bearer sk_live_123\nTokens expire after 60 minutes. If the token is expired, the API returns HTTP 401 with code auth_token_expired.\nClients should request a new token from POST /v1/auth/token before retrying the original request.",
+    "duringTaskInstructionEs": "Escribe en ingles una explicacion breve para un companero: que header debe enviar, cuando expira el token y que endpoint debe usar para renovarlo.",
+    "expectedAnswerEn": "Every request must send the Authorization header with a Bearer token. The token expires after 60 minutes, and the API returns HTTP 401 with auth_token_expired when that happens. The client should call POST /v1/auth/token to get a new token before retrying the request.",
+    "postTaskLanguageFocus": "{\"grammar\":\"must for requirements\",\"discourseMarkers\":[\"when that happens\",\"before\"],\"keyCollocations\":[\"send a header\",\"token expires\",\"retry the request\"]}",
+    "postTaskExplanationEs": "La documentacion tecnica suele resumirse con must para requisitos y con before para indicar secuencia de pasos. Tambien es importante repetir con precision los nombres del header y del endpoint."
+  },
+  {
+    "taskType": "COMMIT_MSG",
+    "cefrLevel": "A2",
+    "titleEs": "Escribir un mensaje de commit claro",
+    "descriptionEs": "Convierte una lista de cambios en un mensaje de commit corto y preciso.",
+    "preTaskContextEn": "You fixed a small backend bug before the daily stand-up. Your tech lead wants a concise commit message in the conventional commits format.",
+    "preTaskGlossesJson": "[{\"term\":\"commit message\",\"gloss\":\"resumen corto del cambio guardado en Git\"},{\"term\":\"validation\",\"gloss\":\"revision de datos antes de procesarlos\"}]",
+    "preTaskVocabTerms": ["update", "change", "check"],
+    "duringTaskPromptEn": "Changes made:\n- add null validation for user email before sending receipt\n- return 404 when user is missing\n- update unit tests for NotificationService",
+    "duringTaskInstructionEs": "Escribe un mensaje de commit en ingles usando conventional commits. Debe tener una sola linea y empezar con feat o fix.",
+    "expectedAnswerEn": "fix: validate missing user email before sending receipt",
+    "postTaskLanguageFocus": "{\"grammar\":\"imperative verb in commit messages\",\"discourseMarkers\":[],\"keyCollocations\":[\"validate missing user\",\"update tests\",\"return 404\"]}",
+    "postTaskExplanationEs": "Los commit messages en conventional commits usan verbo base y una descripcion breve del cambio principal. Conviene enfocarse en el impacto mas importante, no listar todo."
+  },
+  {
+    "taskType": "PR_DESC",
+    "cefrLevel": "B1",
+    "titleEs": "Redactar una descripcion breve de PR",
+    "descriptionEs": "Resume contexto, cambios y pruebas de una pull request.",
+    "preTaskContextEn": "You are opening a pull request after improving the signup flow. Reviewers expect a short description with context, changes, and testing notes.",
+    "preTaskGlossesJson": "[{\"term\":\"reviewer\",\"gloss\":\"persona que revisa el codigo antes del merge\"},{\"term\":\"regression\",\"gloss\":\"fallo que reaparece despues de un cambio\"}]",
+    "preTaskVocabTerms": ["review", "result", "report"],
+    "duringTaskPromptEn": "Context:\nUsers could submit the signup form with an empty company name.\nChanges:\n- disable submit button while request is pending\n- validate company name on client and server\n- show inline error message under the field\nTesting:\n- manual test in Chrome and Firefox\n- added SignupForm test for empty company name",
+    "duringTaskInstructionEs": "Escribe en ingles una descripcion de PR de 4 a 6 lineas con secciones cortas: Context, Changes y Testing.",
+    "expectedAnswerEn": "Context\nUsers could submit the signup form with an empty company name.\n\nChanges\n- Added client and server validation for company name.\n- Disabled the submit button while the request is pending.\n- Displayed an inline error message under the field.\n\nTesting\n- Manually tested the flow in Chrome and Firefox.\n- Added a SignupForm test for the empty company name case.",
+    "postTaskLanguageFocus": "{\"grammar\":\"past simple for implemented changes\",\"discourseMarkers\":[\"Context\",\"Changes\",\"Testing\"],\"keyCollocations\":[\"submit button\",\"inline error message\",\"manual test\"]}",
+    "postTaskExplanationEs": "Las PR descriptions funcionan mejor con secciones previsibles y verbos en pasado para indicar lo implementado. Tambien ayudan bullets cortos y vocabulario consistente con la UI."
+  },
+  {
+    "taskType": "CODE_REVIEW",
+    "cefrLevel": "B2",
+    "titleEs": "Escribir un comentario de code review con sugerencia",
+    "descriptionEs": "Lee un fragmento de diff y propone una mejora tecnica con tono colaborativo.",
+    "preTaskContextEn": "You are reviewing a teammate's pull request in a React application. The code works, but you notice a performance issue caused by repeated API calls on every render.",
+    "preTaskGlossesJson": "[{\"term\":\"re-render\",\"gloss\":\"nueva renderizacion del componente\"},{\"term\":\"dependency array\",\"gloss\":\"lista de dependencias que controla cuando corre useEffect\"}]",
+    "preTaskVocabTerms": ["review", "analysis", "system"],
+    "duringTaskPromptEn": "diff --git a/src/pages/UserPage.tsx b/src/pages/UserPage.tsx\n@@\n- useEffect(() => {\n-   fetch('/api/users/' + userId)\n-     .then((response) => response.json())\n-     .then(setUser)\n- })\n+ useEffect(() => {\n+   fetch('/api/users/' + userId)\n+     .then((response) => response.json())\n+     .then(setUser)\n+ }, [user, userId])",
+    "duringTaskInstructionEs": "Escribe en ingles un comentario de code review de 2 a 4 frases. Explica el problema y sugiere la mejora con tono profesional y colaborativo.",
+    "expectedAnswerEn": "I think this dependency array may still cause unnecessary requests because the effect will run again every time user changes after setUser. Could we depend only on userId here? That would fetch the data when the route changes and avoid an extra render loop.",
+    "postTaskLanguageFocus": "{\"grammar\":\"hedging for polite suggestions\",\"discourseMarkers\":[\"because\",\"could we\"],\"keyCollocations\":[\"dependency array\",\"unnecessary request\",\"render loop\"]}",
+    "postTaskExplanationEs": "En code review conviene usar hedging como I think o Could we para sonar colaborativo sin perder claridad tecnica. El conector because ayuda a justificar la sugerencia."
+  }
+]
