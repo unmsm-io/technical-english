@@ -36,6 +36,14 @@ bun test
   Flujo secuencial de 15 preguntas con barra de progreso.
 - `/diagnostic/result`
   Resultado del placement CEFR con desglose por nivel y CTA hacia vocabulario.
+- `/tasks`
+  Navegador de tareas TBLT con filtros por tipo, nivel y búsqueda.
+- `/tasks/:id`
+  Detalle de una tarea con contexto pre-task y métricas rápidas.
+- `/tasks/:id/run`
+  Flujo de ejecución en tres fases con micro-glosses y envío de respuesta.
+- `/tasks/:id/result/:attemptId`
+  Resultado de la tarea con feedback, explicación didáctica y acciones de cierre.
 
 ## Componentes relevantes
 
@@ -43,6 +51,8 @@ bun test
   API, badges y componentes de resaltado del profiler.
 - `src/features/diagnostic/`
   API y store Zustand para el flujo diagnóstico.
+- `src/features/task/`
+  API, store Zustand y componentes del flujo TBLT.
 - `src/components/layout/`
   Header responsive y breadcrumbs del sprint.
 
@@ -50,3 +60,6 @@ bun test
 
 - `src/pages/VocabularyPage.test.tsx`
 - `src/pages/DiagnosticTestPage.test.tsx`
+- `src/pages/TaskListPage.test.tsx`
+- `src/pages/TaskRunnerPage.test.tsx`
+- `src/features/task/taskStore.test.ts`

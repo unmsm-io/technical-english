@@ -1,15 +1,30 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
-import { Users, Languages, ClipboardCheck, BarChart3 } from "lucide-react"
+import { Users, Languages, ClipboardCheck, BarChart3, ListChecks } from "lucide-react"
 import { getDashboardStats } from "../api/analytics"
+import { getUsers } from "../api/users"
+import { TaskApi } from "../features/task/TaskApi"
 import type { DashboardStats as DashboardStatsType } from "../types/diagnostic"
+import type { TaskStats, User } from "../types"
 
 export function Dashboard() {
   const [statsData, setStatsData] = useState<DashboardStatsType | null>(null)
+  const [taskStats, setTaskStats] = useState<TaskStats | null>(null)
+  const [taskReadyUser, setTaskReadyUser] = useState<User | null>(null)
 
   useEffect(() => {
     getDashboardStats()
       .then(setStatsData)
+      .catch(() => {})
+
+    TaskApi.getStats()
+      .then(setTaskStats)
+      .catch(() => {})
+
+    getUsers(0, 100)
+      .then((page) => {
+        setTaskReadyUser(page.content.find((user) => Boolean(user.englishLevel)) ?? null)
+      })
       .catch(() => {})
   }, [])
 
@@ -47,6 +62,13 @@ export function Dashboard() {
       href: "/users",
       color: "bg-amber-500",
     },
+    {
+      label: "Tareas TBLT disponibles",
+      value: taskStats?.totalTasks ?? 0,
+      icon: ListChecks,
+      href: "/tasks",
+      color: "bg-slate-500",
+    },
   ]
 
   return (
@@ -58,7 +80,7 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((stat) => (
           <Link
             key={stat.label}
@@ -104,6 +126,14 @@ export function Dashboard() {
             >
               Explorar vocabulario
             </Link>
+            {taskReadyUser ? (
+              <Link
+                to={`/tasks?userId=${taskReadyUser.id}`}
+                className="block rounded-lg border border-gray-200 p-3 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Empezar tarea de mi nivel
+              </Link>
+            ) : null}
           </div>
         </div>
 

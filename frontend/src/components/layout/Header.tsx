@@ -6,6 +6,7 @@ import {
   Languages,
   ScanSearch,
   ClipboardCheck,
+  ListChecks,
   Menu,
   X,
 } from "lucide-react"
@@ -18,6 +19,7 @@ const navItems = [
   { to: "/vocabulary", label: "Vocabulario", icon: Languages },
   { to: "/profiler", label: "Perfilador", icon: ScanSearch },
   { to: "/diagnostic/start", label: "Diagnóstico", icon: ClipboardCheck },
+  { to: "/tasks", label: "Tareas", icon: ListChecks },
   { to: "/content", label: "Contenido", icon: BookOpen },
 ]
 
