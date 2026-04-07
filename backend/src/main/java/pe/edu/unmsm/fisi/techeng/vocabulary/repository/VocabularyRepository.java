@@ -18,8 +18,11 @@ public interface VocabularyRepository extends JpaRepository<VocabularyItem, Long
             from VocabularyItem v
             where (:layer is null or v.layer = :layer)
               and (:cefrLevel is null or v.cefrLevel = :cefrLevel)
-              and (:query is null or lower(v.term) like lower(concat('%', :query, '%'))
-                   or lower(v.definition) like lower(concat('%', :query, '%')))
+              and (
+                   cast(:query as string) is null
+                   or lower(v.term) like lower(concat('%', cast(:query as string), '%'))
+                   or lower(v.definition) like lower(concat('%', cast(:query as string), '%'))
+              )
             """)
     Page<VocabularyItem> search(
             @Param("layer") VocabularyLayer layer,
