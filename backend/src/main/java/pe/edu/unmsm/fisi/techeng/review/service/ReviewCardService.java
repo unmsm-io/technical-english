@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.unmsm.fisi.techeng.kc.entity.KcItemType;
+import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
 import pe.edu.unmsm.fisi.techeng.review.dto.ReviewBootstrapResponse;
 import pe.edu.unmsm.fisi.techeng.review.dto.ReviewCardResponse;
 import pe.edu.unmsm.fisi.techeng.review.dto.ReviewCardState;
@@ -53,6 +55,7 @@ public class ReviewCardService {
     private final ReviewMapper reviewMapper;
     private final FsrsScheduler fsrsScheduler;
     private final UserRepository userRepository;
+    private final MasteryService masteryService;
 
     @Transactional(readOnly = true)
     public List<ReviewCardResponse> getDueCards(Long userId, int limit) {
@@ -88,6 +91,14 @@ public class ReviewCardService {
 
         applyState(card, next, elapsedDays);
         ReviewCard savedCard = reviewCardRepository.save(card);
+
+        try {
+            boolean correct = grade == ReviewGrade.GOOD || grade == ReviewGrade.EASY;
+            masteryService.recordResponse(card.getUserId(), KcItemType.VOCABULARY, card.getVocabularyItemId(), correct);
+        } catch (Exception exception) {
+            log.warn("Mastery update failed for review card {}", savedCard.getId(), exception);
+        }
+
         return toResponse(savedCard);
     }
 
