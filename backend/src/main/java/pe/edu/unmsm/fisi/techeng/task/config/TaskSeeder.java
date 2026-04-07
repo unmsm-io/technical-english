@@ -17,7 +17,6 @@ import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.task.entity.Task;
 import pe.edu.unmsm.fisi.techeng.task.entity.TaskType;
 import pe.edu.unmsm.fisi.techeng.task.repository.TaskRepository;
-import pe.edu.unmsm.fisi.techeng.vocabulary.repository.VocabularyRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +25,6 @@ public class TaskSeeder implements ApplicationRunner {
     private static final Logger logger = LoggerFactory.getLogger(TaskSeeder.class);
 
     private final TaskRepository taskRepository;
-    private final VocabularyRepository vocabularyRepository;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -57,7 +55,7 @@ public class TaskSeeder implements ApplicationRunner {
         task.setDescriptionEs(item.descriptionEs());
         task.setPreTaskContextEn(item.preTaskContextEn());
         task.setPreTaskGlossesJson(item.preTaskGlossesJson());
-        task.setPreTaskVocabIds(resolveVocabularyIds(item.preTaskVocabTerms()));
+        task.setPreTaskVocabIds(normalizeVocabularyIds(item.preTaskVocabIds()));
         task.setDuringTaskPromptEn(item.duringTaskPromptEn());
         task.setDuringTaskInstructionEs(item.duringTaskInstructionEs());
         task.setExpectedAnswerEn(item.expectedAnswerEn());
@@ -67,27 +65,12 @@ public class TaskSeeder implements ApplicationRunner {
         return task;
     }
 
-    private String resolveVocabularyIds(List<String> terms) {
-        if (terms == null || terms.isEmpty()) {
+    private String normalizeVocabularyIds(String vocabularyIds) {
+        if (vocabularyIds == null || vocabularyIds.isBlank()) {
             return null;
         }
 
-        List<String> normalizedTerms = terms.stream()
-                .filter(term -> term != null && !term.isBlank())
-                .map(String::trim)
-                .map(String::toLowerCase)
-                .distinct()
-                .toList();
-
-        if (normalizedTerms.isEmpty()) {
-            return null;
-        }
-
-        return vocabularyRepository.findByNormalizedTerms(normalizedTerms).stream()
-                .map(item -> item.getId().toString())
-                .distinct()
-                .reduce((left, right) -> left + "," + right)
-                .orElse(null);
+        return vocabularyIds.trim();
     }
 
     private record TaskSeedItem(
@@ -97,7 +80,7 @@ public class TaskSeeder implements ApplicationRunner {
             String descriptionEs,
             String preTaskContextEn,
             String preTaskGlossesJson,
-            List<String> preTaskVocabTerms,
+            String preTaskVocabIds,
             String duringTaskPromptEn,
             String duringTaskInstructionEs,
             String expectedAnswerEn,
