@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pe.edu.unmsm.fisi.techeng.kc.entity.KcItemType;
 import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
+import pe.edu.unmsm.fisi.techeng.pilot.service.PilotCohortService;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskFeedbackPayload;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskFeedbackResponse;
@@ -46,6 +47,9 @@ class TaskAttemptRewriteTest {
     @Mock
     private MasteryService masteryService;
 
+    @Mock
+    private PilotCohortService pilotCohortService;
+
     private TaskAttemptService taskAttemptService;
 
     @BeforeEach
@@ -56,7 +60,8 @@ class TaskAttemptRewriteTest {
                 userRepository,
                 taskFeedbackService,
                 new ObjectMapper(),
-                masteryService
+                masteryService,
+                pilotCohortService
         );
     }
 

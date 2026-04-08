@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pe.edu.unmsm.fisi.techeng.kc.entity.KcItemType;
 import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
+import pe.edu.unmsm.fisi.techeng.pilot.service.PilotCohortService;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskFeedbackPayload;
 import pe.edu.unmsm.fisi.techeng.task.entity.Task;
 import pe.edu.unmsm.fisi.techeng.task.entity.TaskAttempt;
@@ -41,6 +42,9 @@ class TaskAttemptServiceMasteryHookTest {
     @Mock
     private MasteryService masteryService;
 
+    @Mock
+    private PilotCohortService pilotCohortService;
+
     private TaskAttemptService taskAttemptService;
 
     @BeforeEach
@@ -51,7 +55,8 @@ class TaskAttemptServiceMasteryHookTest {
                 userRepository,
                 taskFeedbackService,
                 new ObjectMapper(),
-                masteryService
+                masteryService,
+                pilotCohortService
         );
     }
 

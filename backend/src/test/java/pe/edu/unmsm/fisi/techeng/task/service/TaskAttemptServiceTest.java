@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
+import pe.edu.unmsm.fisi.techeng.pilot.service.PilotCohortService;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskAttemptResponse;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskFeedbackPayload;
@@ -45,6 +46,9 @@ class TaskAttemptServiceTest {
     @Mock
     private MasteryService masteryService;
 
+    @Mock
+    private PilotCohortService pilotCohortService;
+
     private TaskAttemptService taskAttemptService;
 
     @BeforeEach
@@ -55,7 +59,8 @@ class TaskAttemptServiceTest {
                 userRepository,
                 taskFeedbackService,
                 new ObjectMapper(),
-                masteryService
+                masteryService,
+                pilotCohortService
         );
     }
 

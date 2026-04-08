@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pe.edu.unmsm.fisi.techeng.kc.entity.KcItemType;
 import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
+import pe.edu.unmsm.fisi.techeng.pilot.service.PilotCohortService;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.shared.exception.ResourceNotFoundException;
@@ -40,6 +41,7 @@ public class TaskAttemptService {
     private final TaskFeedbackService taskFeedbackService;
     private final ObjectMapper objectMapper;
     private final MasteryService masteryService;
+    private final PilotCohortService pilotCohortService;
 
     public TaskAttemptResponse start(Long userId, Long taskId) {
         userRepository.findById(userId)
@@ -95,6 +97,12 @@ public class TaskAttemptService {
             masteryService.recordResponse(user.getId(), KcItemType.TASK, task.getId(), payload.correctness() >= 70);
         } catch (Exception exception) {
             log.warn("Mastery update failed for task attempt {}", savedAttempt.getId(), exception);
+        }
+
+        try {
+            pilotCohortService.recordAction(user.getId());
+        } catch (Exception exception) {
+            log.warn("Pilot action update failed for task attempt {}", savedAttempt.getId(), exception);
         }
 
         return new TaskFeedbackResponse(

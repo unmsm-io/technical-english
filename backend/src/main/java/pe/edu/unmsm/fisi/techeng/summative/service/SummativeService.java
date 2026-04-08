@@ -11,6 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pe.edu.unmsm.fisi.techeng.pilot.service.PilotCohortService;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.shared.exception.ResourceNotFoundException;
@@ -32,12 +35,15 @@ import pe.edu.unmsm.fisi.techeng.user.repository.UserRepository;
 @Transactional
 public class SummativeService {
 
+    private static final Logger log = LoggerFactory.getLogger(SummativeService.class);
+
     private final SummativeTestRepository summativeTestRepository;
     private final SummativeAttemptRepository summativeAttemptRepository;
     private final UserRepository userRepository;
     private final TaskFeedbackService taskFeedbackService;
     private final ObjectMapper objectMapper;
     private final SummativeMapper summativeMapper;
+    private final PilotCohortService pilotCohortService;
 
     @Transactional(readOnly = true)
     public Page<SummativeDtos.SummativeTestResponse> list(
@@ -163,6 +169,13 @@ public class SummativeService {
         attempt.setCurrentPhase(SummativePhase.COMPLETED);
         attempt.setCompletedAt(LocalDateTime.now());
         SummativeAttempt savedAttempt = summativeAttemptRepository.save(attempt);
+
+        try {
+            pilotCohortService.recordAction(savedAttempt.getUserId());
+        } catch (Exception exception) {
+            log.warn("Pilot action update failed for summative attempt {}", savedAttempt.getId(), exception);
+        }
+
         return summativeMapper.toResultResponse(
                 savedAttempt,
                 test,

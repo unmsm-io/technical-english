@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pe.edu.unmsm.fisi.techeng.pilot.service.PilotCohortService;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.summative.dto.SummativeDtos;
@@ -44,6 +45,9 @@ class SummativeServiceTest {
     @Mock
     private TaskFeedbackService taskFeedbackService;
 
+    @Mock
+    private PilotCohortService pilotCohortService;
+
     private SummativeService summativeService;
 
     @BeforeEach
@@ -54,7 +58,8 @@ class SummativeServiceTest {
                 userRepository,
                 taskFeedbackService,
                 new ObjectMapper(),
-                new SummativeMapper()
+                new SummativeMapper(),
+                pilotCohortService
         );
     }
 
