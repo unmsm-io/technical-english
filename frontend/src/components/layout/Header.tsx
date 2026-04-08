@@ -14,6 +14,7 @@ import {
   Sparkles,
   Gauge,
   Radar,
+  GraduationCap,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { cn } from "../../lib/utils"
@@ -26,6 +27,7 @@ const navItems = [
   { to: "/profiler", label: "Perfilador", icon: ScanSearch },
   { to: "/diagnostic/start", label: "Diagnóstico", icon: ClipboardCheck },
   { to: "/tasks", label: "Tareas", icon: ListChecks },
+  { to: "/summative", label: "Pruebas finales", icon: GraduationCap },
   { to: "/review/session", label: "Repaso", icon: Brain },
   { to: "/mastery", label: "Mi dominio", icon: Radar },
   { to: "/content", label: "Contenido", icon: BookOpen },

@@ -9,6 +9,7 @@ const segmentLabels: Record<string, string> = {
   profiler: "Perfilador",
   diagnostic: "Diagnóstico",
   tasks: "Tareas",
+  summative: "Pruebas finales",
   start: "Inicio",
   test: "Prueba",
   result: "Resultado",
