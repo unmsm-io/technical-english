@@ -7,6 +7,10 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pe.edu.unmsm.fisi.techeng.kc.entity.KcItemType;
+import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
 import pe.edu.unmsm.fisi.techeng.shared.exception.ResourceNotFoundException;
@@ -27,11 +31,14 @@ import pe.edu.unmsm.fisi.techeng.user.repository.UserRepository;
 @Transactional
 public class TaskAttemptService {
 
+    private static final Logger log = LoggerFactory.getLogger(TaskAttemptService.class);
+
     private final TaskAttemptRepository taskAttemptRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final TaskFeedbackService taskFeedbackService;
     private final ObjectMapper objectMapper;
+    private final MasteryService masteryService;
 
     public TaskAttemptResponse start(Long userId, Long taskId) {
         userRepository.findById(userId)
@@ -82,6 +89,12 @@ public class TaskAttemptService {
         attempt.setLlmFeedbackJson(writeJson(payload));
         attempt.setScore(payload.correctness());
         TaskAttempt savedAttempt = taskAttemptRepository.save(attempt);
+
+        try {
+            masteryService.recordResponse(user.getId(), KcItemType.TASK, task.getId(), payload.correctness() >= 70);
+        } catch (Exception exception) {
+            log.warn("Mastery update failed for task attempt {}", savedAttempt.getId(), exception);
+        }
 
         return new TaskFeedbackResponse(
                 savedAttempt.getId(),

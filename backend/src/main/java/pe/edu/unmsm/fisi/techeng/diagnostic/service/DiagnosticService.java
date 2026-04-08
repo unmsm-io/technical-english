@@ -10,6 +10,8 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pe.edu.unmsm.fisi.techeng.diagnostic.dto.DiagnosticAttemptHistoryResponse;
 import pe.edu.unmsm.fisi.techeng.diagnostic.dto.DiagnosticAttemptStartResponse;
 import pe.edu.unmsm.fisi.techeng.diagnostic.dto.DiagnosticItemResponse;
@@ -19,6 +21,8 @@ import pe.edu.unmsm.fisi.techeng.diagnostic.entity.DiagnosticItem;
 import pe.edu.unmsm.fisi.techeng.diagnostic.entity.DiagnosticSkill;
 import pe.edu.unmsm.fisi.techeng.diagnostic.repository.DiagnosticAttemptRepository;
 import pe.edu.unmsm.fisi.techeng.diagnostic.repository.DiagnosticItemRepository;
+import pe.edu.unmsm.fisi.techeng.kc.entity.KcItemType;
+import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
 import pe.edu.unmsm.fisi.techeng.review.service.ReviewCardService;
 import pe.edu.unmsm.fisi.techeng.shared.enums.CefrLevel;
 import pe.edu.unmsm.fisi.techeng.shared.exception.BusinessRuleException;
@@ -33,12 +37,15 @@ import pe.edu.unmsm.fisi.techeng.user.repository.UserRepository;
 @Transactional
 public class DiagnosticService {
 
+    private static final Logger log = LoggerFactory.getLogger(DiagnosticService.class);
+
     private final DiagnosticItemRepository diagnosticItemRepository;
     private final DiagnosticAttemptRepository diagnosticAttemptRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final ReviewCardService reviewCardService;
     private final CalibrationService calibrationService;
+    private final MasteryService masteryService;
 
     public DiagnosticAttemptStartResponse startAttempt(Long userId) {
         User user = userRepository.findById(userId)
@@ -143,8 +150,18 @@ public class DiagnosticService {
         try {
             reviewCardService.bootstrapForUser(user.getId(), finalPlacement);
         } catch (Exception exception) {
-            org.slf4j.LoggerFactory.getLogger(DiagnosticService.class)
-                    .warn("Review bootstrap failed for user {}", user.getId(), exception);
+            log.warn("Review bootstrap failed for user {}", user.getId(), exception);
+        }
+
+        try {
+            for (int index = 0; index < items.size(); index++) {
+                DiagnosticItem item = items.get(index);
+                Integer answer = responses.get(index);
+                boolean correct = answer != null && answer.equals(item.getCorrectAnswerIdx());
+                masteryService.recordResponse(user.getId(), KcItemType.DIAGNOSTIC, item.getId(), correct);
+            }
+        } catch (Exception exception) {
+            log.warn("Mastery update failed for diagnostic attempt {}", savedAttempt.getId(), exception);
         }
 
         return new DiagnosticResultResponse(

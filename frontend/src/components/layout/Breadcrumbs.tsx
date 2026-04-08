@@ -18,10 +18,13 @@ const segmentLabels: Record<string, string> = {
   session: "Sesión",
   deck: "Deck",
   stats: "Estadísticas",
+  mastery: "Mi dominio",
+  kcs: "Knowledge components",
   admin: "Admin",
   calibration: "Calibración",
   "generated-items": "Items generados",
   "verification-metrics": "Métricas",
+  "cohort-analytics": "Cohort Analytics",
 }
 
 export function Breadcrumbs() {

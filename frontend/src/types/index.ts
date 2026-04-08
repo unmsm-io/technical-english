@@ -66,3 +66,5 @@ export interface UpdateUserRequest {
 
 export * from "./task"
 export * from "./review"
+export * from "./mastery"
+export * from "./cohort"

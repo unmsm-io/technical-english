@@ -217,3 +217,103 @@ Base teórica usada en el sprint:
   Carga 30 tareas TBLT con distribución `6xA2`, `12xB1`, `12xB2` y `5` tareas por tipo.
 
 Los seeders son idempotentes: si la tabla ya contiene datos, no vuelven a insertar.
+
+## KC module (BKT)
+
+Sprint 6 agrega un módulo independiente `kc/` para modelar knowledge components y trazar dominio por estudiante con Bayesian Knowledge Tracing. La separación es intencional: el sistema necesitaba entidades, repositorios, servicios, logs y endpoints propios para trabajar con KCs sin contaminar `diagnostic/`, `task/` o `review/`.
+
+Base teórica usada:
+
+- Corbett y Anderson (1995) para BKT con el modelo de 4 parámetros `P(L0)`, `P(T)`, `P(G)` y `P(S)`.
+- Piech et al. (2015) como contexto moderno sobre tracing neuronal, útil para justificar por qué aquí se eligió un enfoque interpretable.
+- Nagatani et al. (2019) como respaldo del valor de modelar aprendizaje/olvido por oportunidad de práctica.
+
+Componentes principales:
+
+- `KnowledgeComponent`
+  Catálogo de habilidades o microcompetencias como `passive_voice` o `api_documentation_reading`.
+- `ItemKcMapping`
+  Relación polimórfica entre cualquier item (`DIAGNOSTIC`, `TASK`, `VOCABULARY`) y uno o más KCs.
+- `KcMasteryState`
+  Estado por usuario y KC con `pLearned`, rachas, conteos y `masteredAt`.
+- `KcResponseLog`
+  Log histórico de cada actualización BKT.
+- `BktUpdater`
+  Núcleo matemático puro que calcula el posterior y luego aplica transición hacia adelante.
+- `MasteryService`
+  Punto único de escritura cuando llegan respuestas desde diagnóstico, tareas o repaso.
+- `KcMappingExtractor`
+  Extrae KCs candidatos con LLM y genera semillas consumidas por `KcSeedRunner`.
+
+Hooks integrados:
+
+- `DiagnosticService.submitAttempt(...)`
+  Registra un evento de mastery por respuesta del diagnóstico después de actualizar calibración.
+- `TaskAttemptService.submit(...)`
+  Registra mastery cuando el score de la tarea es `>= 70`.
+- `ReviewCardService.gradeCard(...)`
+  Registra mastery cuando la nota de FSRS es `GOOD` o `EASY`.
+
+Endpoints expuestos:
+
+- `GET /api/v1/kc`
+  Lista KCs con filtros y paginación.
+- `GET /api/v1/kc/{id}`
+  Devuelve detalle de un KC, conteos y items relacionados.
+- `GET /api/v1/kc/items`
+  Lista mappings por tipo de item e id.
+- `POST /api/v1/kc/extract`
+  Ejecuta extracción/siembra de KCs desde el extractor.
+- `GET /api/v1/kc/stats`
+  Resume conteos por categoría y CEFR.
+- `GET /api/v1/mastery/users/{userId}/radar`
+  Devuelve el radar completo de mastery BKT.
+- `GET /api/v1/mastery/users/{userId}/kcs/{kcId}`
+  Devuelve detalle, historial y mappings de un KC para un usuario.
+- `GET /api/v1/mastery/users/{userId}/mastered-count`
+  Cuenta KCs con `P(L) >= 0.95`.
+- `POST /api/v1/mastery/users/{userId}/recompute`
+  Reconstruye el estado del usuario desde los logs guardados.
+
+Seeds y extracción:
+
+- `src/main/resources/seeds/kc/extracted-kcs-fallback.json`
+  Contiene `10` KCs iniciales y mappings base si todavía no existe extracción real.
+- `src/main/resources/seeds/kc/extracted-kcs.json`
+  Se genera cuando corre la extracción LLM y luego se reutiliza de forma idempotente.
+
+## Analytics extensions
+
+Sprint 6 también extiende `analytics/` para exponer una capa de mastery y cohort dashboards sin introducir gamificación superficial.
+
+Base teórica usada:
+
+- Csikszentmihalyi (1990) para flow como equilibrio entre reto y habilidad.
+- Ryan y Deci (2000) para mantener foco en motivación autodeterminada y progreso significativo.
+- Almeida et al. (2023) para evitar leaderboards y badges desconectados del aprendizaje real.
+
+Componentes nuevos:
+
+- `FlowDetector`
+  Heurística simple sobre `ReviewLog` y `KcResponseLog` de las últimas `24h` para clasificar `FRUSTRATION`, `BOREDOM`, `FLOW`, `INACTIVE` o `NEUTRAL`.
+- Extensiones en `AnalyticsService`
+  Radar de mastery, heatmap de estabilidad, ritmo de adquisición, alertas de flow y agregados de cohorte.
+- Extensiones en `AnalyticsController`
+  Endpoints dedicados para paneles de estudiante y panel admin.
+
+Heurísticas de flow:
+
+- `consecutiveAgains >= 3` → `FRUSTRATION`
+- `consecutiveEasys >= 10` → `BOREDOM`
+- `0.60 <= recent24hCorrectRate <= 0.85` → `FLOW`
+- `recent24hAttemptCount == 0` → `INACTIVE`
+- caso contrario → `NEUTRAL`
+
+Endpoints expuestos:
+
+- `GET /api/v1/analytics/users/{userId}/mastery-radar`
+- `GET /api/v1/analytics/users/{userId}/stability-heatmap`
+- `GET /api/v1/analytics/users/{userId}/acquisition-rate`
+- `GET /api/v1/analytics/users/{userId}/flow-alert`
+- `GET /api/v1/analytics/cohort/mastery`
+- `GET /api/v1/analytics/cohort/acquisition`

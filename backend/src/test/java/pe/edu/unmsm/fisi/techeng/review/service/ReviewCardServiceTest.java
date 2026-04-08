@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pe.edu.unmsm.fisi.techeng.kc.service.MasteryService;
 import pe.edu.unmsm.fisi.techeng.review.dto.ReviewBootstrapResponse;
 import pe.edu.unmsm.fisi.techeng.review.dto.ReviewCardResponse;
 import pe.edu.unmsm.fisi.techeng.review.entity.CardState;
@@ -47,6 +48,9 @@ class ReviewCardServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private MasteryService masteryService;
+
     private ReviewCardService reviewCardService;
 
     @BeforeEach
@@ -58,7 +62,8 @@ class ReviewCardServiceTest {
                 new VocabularyMapper(),
                 new ReviewMapper(),
                 new FsrsScheduler(),
-                userRepository
+                userRepository,
+                masteryService
         );
     }
 

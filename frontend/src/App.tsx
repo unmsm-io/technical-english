@@ -22,6 +22,9 @@ import { AdminGeneratedItemsPage } from "./pages/AdminGeneratedItemsPage"
 import { AdminGeneratedItemDetailPage } from "./pages/AdminGeneratedItemDetailPage"
 import { AdminCalibrationPage } from "./pages/AdminCalibrationPage"
 import { AdminVerificationMetricsPage } from "./pages/AdminVerificationMetricsPage"
+import { MasteryPage } from "./pages/MasteryPage"
+import { MasteryKcDetailPage } from "./pages/MasteryKcDetailPage"
+import { AdminCohortAnalyticsPage } from "./pages/AdminCohortAnalyticsPage"
 
 export default function App() {
   return (
@@ -46,10 +49,13 @@ export default function App() {
         <Route path="review/session" element={<ReviewSessionPage />} />
         <Route path="review/deck" element={<ReviewDeckPage />} />
         <Route path="review/stats" element={<ReviewStatsPage />} />
+        <Route path="mastery" element={<MasteryPage />} />
+        <Route path="mastery/kcs/:id" element={<MasteryKcDetailPage />} />
         <Route path="admin/generated-items" element={<AdminGeneratedItemsPage />} />
         <Route path="admin/generated-items/:id" element={<AdminGeneratedItemDetailPage />} />
         <Route path="admin/calibration" element={<AdminCalibrationPage />} />
         <Route path="admin/verification-metrics" element={<AdminVerificationMetricsPage />} />
+        <Route path="admin/cohort-analytics" element={<AdminCohortAnalyticsPage />} />
       </Route>
     </Routes>
   )
