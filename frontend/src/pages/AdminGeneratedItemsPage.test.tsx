@@ -65,6 +65,7 @@ mock.module("../api/users", () => ({
       },
     ],
   })),
+  getUser: mock(async () => null),
 }))
 
 const { AdminGeneratedItemsPage } = await import("./AdminGeneratedItemsPage")

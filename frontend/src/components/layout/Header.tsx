@@ -15,6 +15,7 @@ import {
   Gauge,
   Radar,
   GraduationCap,
+  FlaskConical,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { cn } from "../../lib/utils"
@@ -129,6 +130,13 @@ export function Header() {
                       <Radar className="h-4 w-4" />
                       Cohort Analytics
                     </Link>
+                    <Link
+                      to="/admin/pilot"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                      <FlaskConical className="h-4 w-4" />
+                      Pilot Studies
+                    </Link>
                   </div>
                 ) : null}
               </div>
@@ -196,6 +204,14 @@ export function Header() {
                 >
                   <Radar className="h-4 w-4" />
                   Cohort Analytics
+                </Link>
+                <Link
+                  to="/admin/pilot"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass(location.pathname.startsWith("/admin/pilot"))}
+                >
+                  <FlaskConical className="h-4 w-4" />
+                  Pilot Studies
                 </Link>
               </>
             ) : null}

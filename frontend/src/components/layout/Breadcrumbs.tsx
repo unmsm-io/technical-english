@@ -27,6 +27,8 @@ const segmentLabels: Record<string, string> = {
   "generated-items": "Items generados",
   "verification-metrics": "Métricas",
   "cohort-analytics": "Cohort Analytics",
+  pilot: "Pilot Studies",
+  cohorts: "Cohortes",
 }
 
 export function Breadcrumbs() {

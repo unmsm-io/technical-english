@@ -9,11 +9,13 @@ import { AdminApi } from "../features/admin/AdminApi"
 import { MasteryApi } from "../features/mastery/MasteryApi"
 import { CohortApi } from "../features/cohort/CohortApi"
 import { PortfolioApi } from "../features/portfolio/PortfolioApi"
+import { PilotApi } from "../features/pilot/PilotApi"
 import type { DashboardStats as DashboardStatsType } from "../types/diagnostic"
 import type { ReviewStats, TaskStats, User } from "../types"
 import type { VerificationMetrics } from "../types/admin"
 import type { CohortMasteryResponse, MasteryRadarResponse } from "../types"
 import type { PortfolioResponse } from "../types/portfolio"
+import type { PilotCohort } from "../types/pilot"
 
 export function Dashboard() {
   const [statsData, setStatsData] = useState<DashboardStatsType | null>(null)
@@ -25,6 +27,7 @@ export function Dashboard() {
   const [masteryRadar, setMasteryRadar] = useState<MasteryRadarResponse | null>(null)
   const [cohortMastery, setCohortMastery] = useState<CohortMasteryResponse | null>(null)
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioResponse | null>(null)
+  const [pilotCohorts, setPilotCohorts] = useState<PilotCohort[]>([])
   const [hasAdmin, setHasAdmin] = useState(false)
 
   useEffect(() => {
@@ -53,6 +56,7 @@ export function Dashboard() {
         }
         if (adminAvailable) {
           CohortApi.getMastery().then(setCohortMastery).catch(() => {})
+          PilotApi.listCohorts().then(setPilotCohorts).catch(() => {})
         }
       })
       .catch(() => {})
@@ -232,6 +236,27 @@ export function Dashboard() {
             {taskReadyUser.firstName} tiene {reviewStats.dueToday} cards para hoy y una retención reciente de{" "}
             {reviewStats.retentionRate}%.
           </p>
+        </div>
+      ) : null}
+
+      {hasAdmin ? (
+        <div className="mt-6 rounded-2xl border border-amber-100 bg-amber-50 p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-amber-950">Pilot studies activos</h2>
+              <p className="mt-2 text-sm text-amber-800">
+                Hay {pilotCohorts.filter((cohort) => cohort.state !== "ARCHIVED").length} cohortes
+                activas y {pilotCohorts.filter((cohort) => cohort.state === "RESULTS_AVAILABLE").length}
+                {` `}listas para reporte.
+              </p>
+            </div>
+            <Link
+              to="/admin/pilot"
+              className="inline-flex rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-800"
+            >
+              Abrir piloto
+            </Link>
+          </div>
         </div>
       ) : null}
 

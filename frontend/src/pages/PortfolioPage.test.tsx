@@ -84,6 +84,7 @@ const getHistory = mock(async () => [
 
 mock.module("../api/users", () => ({
   getUsers,
+  getUser: mock(async () => null),
 }))
 
 mock.module("../features/portfolio/PortfolioApi", () => ({

@@ -29,6 +29,9 @@ import { AdminVerificationMetricsPage } from "./pages/AdminVerificationMetricsPa
 import { MasteryPage } from "./pages/MasteryPage"
 import { MasteryKcDetailPage } from "./pages/MasteryKcDetailPage"
 import { AdminCohortAnalyticsPage } from "./pages/AdminCohortAnalyticsPage"
+import { AdminPilotPage } from "./pages/AdminPilotPage"
+import { AdminPilotCohortDetailPage } from "./pages/AdminPilotCohortDetailPage"
+import { AdminPilotResultsPage } from "./pages/AdminPilotResultsPage"
 
 export default function App() {
   return (
@@ -64,6 +67,9 @@ export default function App() {
         <Route path="admin/calibration" element={<AdminCalibrationPage />} />
         <Route path="admin/verification-metrics" element={<AdminVerificationMetricsPage />} />
         <Route path="admin/cohort-analytics" element={<AdminCohortAnalyticsPage />} />
+        <Route path="admin/pilot" element={<AdminPilotPage />} />
+        <Route path="admin/pilot/cohorts/:id" element={<AdminPilotCohortDetailPage />} />
+        <Route path="admin/pilot/cohorts/:id/results" element={<AdminPilotResultsPage />} />
       </Route>
     </Routes>
   )
