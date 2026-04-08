@@ -1,222 +1,245 @@
-import { Link, useLocation } from "react-router"
-import {
-  BookOpen,
-  Users,
-  BarChart3,
-  Languages,
-  ScanSearch,
-  ClipboardCheck,
-  ListChecks,
-  Brain,
-  Menu,
-  X,
-  ShieldCheck,
-  Sparkles,
-  Gauge,
-  Radar,
-  GraduationCap,
-  FlaskConical,
-} from "lucide-react"
-import { useEffect, useState } from "react"
-import { cn } from "../../lib/utils"
+import { BookOpen, ChevronDown, Command, GraduationCap, Languages, LayoutDashboard, Menu, Radar, Shield, UserCircle2 } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
 import { getUsers } from "../../api/users"
+import type { User } from "../../types"
+import { ThemeToggle } from "../theme-toggle"
+import { Avatar, AvatarFallback } from "../ui/avatar"
+import { Button } from "../ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
+import { Input } from "../ui/input"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet"
+import { cn } from "../../lib/utils"
 
-const navItems = [
-  { to: "/", label: "Inicio", icon: BarChart3 },
-  { to: "/users", label: "Usuarios", icon: Users },
-  { to: "/vocabulary", label: "Vocabulario", icon: Languages },
-  { to: "/profiler", label: "Perfilador", icon: ScanSearch },
-  { to: "/diagnostic/start", label: "Diagnóstico", icon: ClipboardCheck },
-  { to: "/tasks", label: "Tareas", icon: ListChecks },
-  { to: "/portfolio", label: "Portafolio", icon: BarChart3 },
-  { to: "/summative", label: "Pruebas finales", icon: GraduationCap },
-  { to: "/review/session", label: "Repaso", icon: Brain },
-  { to: "/mastery", label: "Mi dominio", icon: Radar },
-  { to: "/content", label: "Contenido", icon: BookOpen },
-]
+const primaryNav = [
+  { label: "Panel", to: "/", icon: LayoutDashboard },
+  { label: "Vocabulario", to: "/vocabulary", icon: Languages },
+  { label: "Tareas", to: "/tasks", icon: BookOpen },
+  { label: "Repaso", to: "/review/deck", icon: Command },
+  { label: "Mi dominio", to: "/mastery", icon: Radar },
+  { label: "Portafolio", to: "/portfolio", icon: GraduationCap },
+] as const
+
+const secondaryNav = [
+  { label: "Pruebas finales", to: "/summative" },
+  { label: "Perfilador", to: "/profiler" },
+  { label: "Diagnóstico", to: "/diagnostic/start" },
+  { label: "Usuarios", to: "/users" },
+  { label: "Contenido", to: "/content" },
+] as const
+
+const adminNav = [
+  { label: "Items generados", to: "/admin/generated-items" },
+  { label: "Calibración", to: "/admin/calibration" },
+  { label: "Métricas de verificación", to: "/admin/verification-metrics" },
+  { label: "Analítica de cohortes", to: "/admin/cohort-analytics" },
+  { label: "Estudios piloto", to: "/admin/pilot" },
+] as const
+
+function isActivePath(pathname: string, to: string) {
+  return to === "/" ? pathname === "/" : pathname.startsWith(to)
+}
 
 export function Header() {
   const location = useLocation()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [adminOpen, setAdminOpen] = useState(false)
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [users, setUsers] = useState<User[]>([])
   const [showAdmin, setShowAdmin] = useState(false)
+  const selectedUserId = Number(searchParams.get("userId") ?? "") || null
 
   useEffect(() => {
     getUsers(0, 100)
       .then((page) => {
+        setUsers(page.content)
         setShowAdmin(page.content.some((user) => user.role === "ADMIN"))
       })
       .catch(() => {
+        setUsers([])
         setShowAdmin(false)
       })
   }, [])
 
-  const linkClass = (active: boolean) =>
-    cn(
-      "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-      active
-        ? "bg-blue-50 text-blue-700"
-        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-    )
+  const selectedUser = useMemo(
+    () => users.find((user) => user.id === selectedUserId) ?? null,
+    [selectedUserId, users]
+  )
+
+  const handleUserChange = (value: string) => {
+    const nextParams = new URLSearchParams(searchParams)
+    if (value) {
+      nextParams.set("userId", value)
+    } else {
+      nextParams.delete("userId")
+    }
+    setSearchParams(nextParams, { replace: true })
+  }
 
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-blue-600" />
-              <span className="text-lg font-semibold text-gray-900">
-                TechEng
-              </span>
-            </Link>
-            <nav className="hidden gap-1 md:flex">
-              {navItems.map((item) => {
-                const active =
-                  item.to === "/"
-                    ? location.pathname === "/"
-                    : location.pathname.startsWith(item.to)
-                return (
+    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
+      <a
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2"
+        href="#app-content"
+      >
+        Saltar al contenido
+      </a>
+      <div className="mx-auto flex h-14 max-w-screen-xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-6">
+          <Link className="flex items-center gap-2" to="/">
+            <div className="flex size-8 items-center justify-center rounded-md border bg-card">
+              <BookOpen className="size-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold tracking-tight">TechEng</span>
+              <span className="text-[11px] text-muted-foreground">technical-english</span>
+            </div>
+          </Link>
+          <nav className="hidden items-center gap-1 md:flex">
+            {primaryNav.map((item) => (
+              <Link
+                className={cn(
+                  "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  isActivePath(location.pathname, item.to) && "bg-accent text-foreground"
+                )}
+                key={item.to}
+                to={item.to}
+              >
+                <item.icon className="size-4" />
+                {item.label}
+              </Link>
+            ))}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="ghost">
+                  Más
+                  <ChevronDown className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {secondaryNav.map((item) => (
+                  <DropdownMenuItem key={item.to} onClick={() => navigate(item.to)}>
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+                {showAdmin ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Admin</DropdownMenuLabel>
+                    {adminNav.map((item) => (
+                      <DropdownMenuItem key={item.to} onClick={() => navigate(item.to)}>
+                        {item.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+        </div>
+        <div className="hidden items-center gap-2 md:flex">
+          <Button
+            aria-label="Abrir paleta de comandos"
+            onClick={() => window.dispatchEvent(new Event("command-palette:open"))}
+            size="sm"
+            variant="outline"
+          >
+            <Command className="size-4" />
+            Cmd+K
+          </Button>
+          <div className="w-56">
+            <Input
+              aria-label="Usuario activo"
+              list="header-user-options"
+              onChange={(event) => {
+                const nextUser = users.find((user) => {
+                  const fullName = `${user.firstName} ${user.lastName}`
+                  return fullName === event.target.value
+                })
+                handleUserChange(nextUser ? String(nextUser.id) : "")
+              }}
+              placeholder="Usuario activo"
+              value={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : ""}
+            />
+            <datalist id="header-user-options">
+              {users.map((user) => (
+                <option key={user.id} value={`${user.firstName} ${user.lastName}`} />
+              ))}
+            </datalist>
+          </div>
+          <ThemeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-2" size="icon" variant="ghost">
+                <Avatar className="size-8">
+                  <AvatarFallback>
+                    <UserCircle2 className="size-4" />
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones rápidas</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => navigate("/users/new")}>Nuevo usuario</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/users")}>Ver usuarios</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button aria-label="Abrir navegación móvil" size="icon" variant="ghost">
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Navegación</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 flex flex-col gap-2">
+                {[...primaryNav, ...secondaryNav, ...(showAdmin ? adminNav : [])].map((item) => (
                   <Link
+                    className={cn(
+                      "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      isActivePath(location.pathname, item.to) && "bg-accent text-foreground"
+                    )}
                     key={item.to}
                     to={item.to}
-                    className={linkClass(active)}
                   >
-                    <item.icon className="h-4 w-4" />
                     {item.label}
                   </Link>
-                )
-              })}
-            </nav>
-          </div>
-          <div className="hidden items-center gap-2 md:flex">
-            {showAdmin ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setAdminOpen((value) => !value)}
-                  className={linkClass(location.pathname.startsWith("/admin"))}
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  Admin
-                </button>
-                {adminOpen ? (
-                  <div className="absolute right-0 top-12 z-20 w-56 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl">
-                    <Link
-                      to="/admin/generated-items"
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Items generados
-                    </Link>
-                    <Link
-                      to="/admin/calibration"
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
-                    >
-                      <Gauge className="h-4 w-4" />
-                      Calibración
-                    </Link>
-                    <Link
-                      to="/admin/verification-metrics"
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      Métricas
-                    </Link>
-                    <Link
-                      to="/admin/cohort-analytics"
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
-                    >
-                      <Radar className="h-4 w-4" />
-                      Cohort Analytics
-                    </Link>
-                    <Link
-                      to="/admin/pilot"
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
-                    >
-                      <FlaskConical className="h-4 w-4" />
-                      Pilot Studies
-                    </Link>
-                  </div>
-                ) : null}
+                ))}
               </div>
-            ) : null}
-            <span className="text-sm text-gray-500">UNMSM FISI</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setMobileOpen((value) => !value)}
-            className="inline-flex items-center justify-center rounded-lg border border-gray-200 p-2 text-gray-700 md:hidden"
-            aria-label="Toggle navigation"
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+              <div className="mt-6 space-y-2">
+                <Button
+                  className="w-full justify-start"
+                  onClick={() => window.dispatchEvent(new Event("command-palette:open"))}
+                  variant="outline"
+                >
+                  <Command className="size-4" />
+                  Abrir comandos
+                </Button>
+                <Button className="w-full justify-start" onClick={() => navigate("/users/new")} variant="ghost">
+                  <Shield className="size-4" />
+                  Crear usuario
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
-        {mobileOpen ? (
-          <nav className="space-y-1 border-t border-gray-200 py-3 md:hidden">
-            {navItems.map((item) => {
-              const active =
-                item.to === "/"
-                  ? location.pathname === "/"
-                  : location.pathname.startsWith(item.to)
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMobileOpen(false)}
-                  className={linkClass(active)}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              )
-            })}
-            {showAdmin ? (
-              <>
-                <Link
-                  to="/admin/generated-items"
-                  onClick={() => setMobileOpen(false)}
-                  className={linkClass(location.pathname.startsWith("/admin/generated-items"))}
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Items generados
-                </Link>
-                <Link
-                  to="/admin/calibration"
-                  onClick={() => setMobileOpen(false)}
-                  className={linkClass(location.pathname.startsWith("/admin/calibration"))}
-                >
-                  <Gauge className="h-4 w-4" />
-                  Calibración
-                </Link>
-                <Link
-                  to="/admin/verification-metrics"
-                  onClick={() => setMobileOpen(false)}
-                  className={linkClass(location.pathname.startsWith("/admin/verification-metrics"))}
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  Métricas admin
-                </Link>
-                <Link
-                  to="/admin/cohort-analytics"
-                  onClick={() => setMobileOpen(false)}
-                  className={linkClass(location.pathname.startsWith("/admin/cohort-analytics"))}
-                >
-                  <Radar className="h-4 w-4" />
-                  Cohort Analytics
-                </Link>
-                <Link
-                  to="/admin/pilot"
-                  onClick={() => setMobileOpen(false)}
-                  className={linkClass(location.pathname.startsWith("/admin/pilot"))}
-                >
-                  <FlaskConical className="h-4 w-4" />
-                  Pilot Studies
-                </Link>
-              </>
-            ) : null}
-          </nav>
-        ) : null}
       </div>
     </header>
   )
