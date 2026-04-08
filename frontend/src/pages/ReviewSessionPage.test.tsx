@@ -58,6 +58,7 @@ const gradeCard = mock(async () => sampleCard)
 
 mock.module("../api/users", () => ({
   getUsers,
+  getUser: mock(async () => null),
 }))
 
 mock.module("../features/review/ReviewApi", () => ({

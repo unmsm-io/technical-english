@@ -14,6 +14,8 @@ import {
   Sparkles,
   Gauge,
   Radar,
+  GraduationCap,
+  FlaskConical,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { cn } from "../../lib/utils"
@@ -26,6 +28,8 @@ const navItems = [
   { to: "/profiler", label: "Perfilador", icon: ScanSearch },
   { to: "/diagnostic/start", label: "Diagnóstico", icon: ClipboardCheck },
   { to: "/tasks", label: "Tareas", icon: ListChecks },
+  { to: "/portfolio", label: "Portafolio", icon: BarChart3 },
+  { to: "/summative", label: "Pruebas finales", icon: GraduationCap },
   { to: "/review/session", label: "Repaso", icon: Brain },
   { to: "/mastery", label: "Mi dominio", icon: Radar },
   { to: "/content", label: "Contenido", icon: BookOpen },
@@ -126,6 +130,13 @@ export function Header() {
                       <Radar className="h-4 w-4" />
                       Cohort Analytics
                     </Link>
+                    <Link
+                      to="/admin/pilot"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                      <FlaskConical className="h-4 w-4" />
+                      Pilot Studies
+                    </Link>
                   </div>
                 ) : null}
               </div>
@@ -193,6 +204,14 @@ export function Header() {
                 >
                   <Radar className="h-4 w-4" />
                   Cohort Analytics
+                </Link>
+                <Link
+                  to="/admin/pilot"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass(location.pathname.startsWith("/admin/pilot"))}
+                >
+                  <FlaskConical className="h-4 w-4" />
+                  Pilot Studies
                 </Link>
               </>
             ) : null}

@@ -16,6 +16,7 @@ import { getDiagnosticHistory } from "../diagnostic/DiagnosticApi"
 import { ReviewApi } from "../review/ReviewApi"
 import { TaskApi } from "../task/TaskApi"
 import { MasteryApi } from "../mastery/MasteryApi"
+import { PortfolioApi } from "../portfolio/PortfolioApi"
 import { MasteryRadarChart } from "../mastery/components/MasteryRadarChart"
 import { TaskTypeBadge } from "../task/components/TaskTypeBadge"
 import type { DiagnosticAttemptHistory } from "../../types/diagnostic"
@@ -23,6 +24,7 @@ import type { ReviewStats } from "../../types/review"
 import type { TaskAttemptHistoryItem } from "../../types/task"
 import type { User } from "../../types"
 import type { MasteryRadarResponse } from "../../types"
+import type { PortfolioResponse } from "../../types/portfolio"
 
 const targetSkillOptions = [
   { value: "READING_DOCS", label: "Lectura de documentación" },
@@ -41,6 +43,7 @@ export function UserProfile() {
   const [taskHistory, setTaskHistory] = useState<TaskAttemptHistoryItem[]>([])
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null)
   const [masteryRadar, setMasteryRadar] = useState<MasteryRadarResponse | null>(null)
+  const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -61,6 +64,7 @@ export function UserProfile() {
             .then(setMasteryRadar)
             .catch(() => setMasteryRadar(null))
         }
+        PortfolioApi.getCurrent(userId).then(setPortfolio).catch(() => setPortfolio(null))
       })
       .catch(() => setError("No se pudo cargar el perfil del usuario."))
       .finally(() => setLoading(false))
@@ -277,6 +281,39 @@ export function UserProfile() {
           {saveMessage ? <p className="text-sm text-emerald-600">{saveMessage}</p> : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Portafolio</h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Evidencia auto-colectada de tareas, rewrites, vocabulario y pruebas finales.
+            </p>
+          </div>
+          <Link
+            to={`/portfolio?userId=${user.id}`}
+            className="inline-flex items-center justify-center rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50"
+          >
+            Abrir portafolio
+          </Link>
+        </div>
+
+        {portfolio ? (
+          <div className="mt-5 grid gap-4 md:grid-cols-4">
+            <MetricCard label="Tareas" value={`${portfolio.tasksCompleted}`} />
+            <MetricCard label="Vocabulario" value={`${portfolio.vocabularySize}`} />
+            <MetricCard label="KCs" value={`${portfolio.kcMasteredCount}`} />
+            <MetricCard
+              label="Rewrite"
+              value={`${Math.round(portfolio.rewriteAcceptanceRate * 100)}%`}
+            />
+          </div>
+        ) : (
+          <div className="mt-5 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500">
+            El portafolio aparecerá cuando el estudiante tenga actividad suficiente.
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

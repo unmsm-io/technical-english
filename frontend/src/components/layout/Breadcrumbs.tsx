@@ -9,11 +9,13 @@ const segmentLabels: Record<string, string> = {
   profiler: "Perfilador",
   diagnostic: "Diagnóstico",
   tasks: "Tareas",
+  summative: "Pruebas finales",
   start: "Inicio",
   test: "Prueba",
   result: "Resultado",
   run: "Ejecución",
   content: "Contenido",
+  portfolio: "Portafolio",
   review: "Repaso",
   session: "Sesión",
   deck: "Deck",
@@ -25,6 +27,8 @@ const segmentLabels: Record<string, string> = {
   "generated-items": "Items generados",
   "verification-metrics": "Métricas",
   "cohort-analytics": "Cohort Analytics",
+  pilot: "Pilot Studies",
+  cohorts: "Cohortes",
 }
 
 export function Breadcrumbs() {

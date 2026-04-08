@@ -15,6 +15,10 @@ import { TaskListPage } from "./pages/TaskListPage"
 import { TaskDetailPage } from "./pages/TaskDetailPage"
 import { TaskRunnerPage } from "./pages/TaskRunnerPage"
 import { TaskResultPage } from "./pages/TaskResultPage"
+import { SummativeListPage } from "./pages/SummativeListPage"
+import { SummativeRunnerPage } from "./pages/SummativeRunnerPage"
+import { SummativeResultPage } from "./pages/SummativeResultPage"
+import { PortfolioPage } from "./pages/PortfolioPage"
 import { ReviewSessionPage } from "./pages/ReviewSessionPage"
 import { ReviewDeckPage } from "./pages/ReviewDeckPage"
 import { ReviewStatsPage } from "./pages/ReviewStatsPage"
@@ -25,6 +29,9 @@ import { AdminVerificationMetricsPage } from "./pages/AdminVerificationMetricsPa
 import { MasteryPage } from "./pages/MasteryPage"
 import { MasteryKcDetailPage } from "./pages/MasteryKcDetailPage"
 import { AdminCohortAnalyticsPage } from "./pages/AdminCohortAnalyticsPage"
+import { AdminPilotPage } from "./pages/AdminPilotPage"
+import { AdminPilotCohortDetailPage } from "./pages/AdminPilotCohortDetailPage"
+import { AdminPilotResultsPage } from "./pages/AdminPilotResultsPage"
 
 export default function App() {
   return (
@@ -46,6 +53,10 @@ export default function App() {
         <Route path="tasks/:id" element={<TaskDetailPage />} />
         <Route path="tasks/:id/run" element={<TaskRunnerPage />} />
         <Route path="tasks/:id/result/:attemptId" element={<TaskResultPage />} />
+        <Route path="summative" element={<SummativeListPage />} />
+        <Route path="summative/:id/run" element={<SummativeRunnerPage />} />
+        <Route path="summative/:id/result/:attemptId" element={<SummativeResultPage />} />
+        <Route path="portfolio" element={<PortfolioPage />} />
         <Route path="review/session" element={<ReviewSessionPage />} />
         <Route path="review/deck" element={<ReviewDeckPage />} />
         <Route path="review/stats" element={<ReviewStatsPage />} />
@@ -56,6 +67,9 @@ export default function App() {
         <Route path="admin/calibration" element={<AdminCalibrationPage />} />
         <Route path="admin/verification-metrics" element={<AdminVerificationMetricsPage />} />
         <Route path="admin/cohort-analytics" element={<AdminCohortAnalyticsPage />} />
+        <Route path="admin/pilot" element={<AdminPilotPage />} />
+        <Route path="admin/pilot/cohorts/:id" element={<AdminPilotCohortDetailPage />} />
+        <Route path="admin/pilot/cohorts/:id/results" element={<AdminPilotResultsPage />} />
       </Route>
     </Routes>
   )

@@ -258,6 +258,126 @@ Endpoints expuestos:
 
 - `GET /api/v1/kc`
   Lista KCs con filtros y paginación.
+
+## Summative
+
+Sprint 7 agrega el módulo `summative/` para la evaluación integradora de fin de módulo. Sigue una secuencia fija de tres fases:
+
+- `READING`
+  El estudiante lee una especificación real de ingeniería con contexto en español.
+- `PRODUCTION`
+  Produce una respuesta breve en inglés técnico y recibe scoring con el mismo servicio de feedback TBLT.
+- `COMPREHENSION`
+  Resuelve tres preguntas de comprensión para cerrar la prueba.
+
+Diseño pedagógico:
+
+- La estructura responde al marco de assessment para English for Specific Purposes de Douglas (2000): la tarea de evaluación debe parecerse al uso real del lenguaje en dominio técnico.
+- La combinación de lectura, escritura guiada y preguntas de comprensión también sigue el enfoque de classroom-based assessment documentado en rEFLections 31(3), 2024.
+
+Endpoints expuestos:
+
+- `GET /api/v1/summative/tests`
+  Lista pruebas finales con filtros opcionales `taskType`, `cefr`, `q`, `page`, `size`.
+- `GET /api/v1/summative/tests/{id}`
+  Devuelve la versión pública de la prueba sin revelar respuestas correctas.
+- `GET /api/v1/summative/tests/{id}/detail`
+  Devuelve el detalle completo para la vista final y revisión.
+- `POST /api/v1/summative/attempts?userId={id}&testId={id}`
+  Inicia un intento en fase `READING`.
+- `PATCH /api/v1/summative/attempts/{id}/phase`
+  Avanza de manera estricta a la siguiente fase válida.
+- `POST /api/v1/summative/attempts/{id}/production`
+  Guarda la producción escrita y la puntúa con feedback CEFR-aware.
+- `POST /api/v1/summative/attempts/{id}/comprehension`
+  Evalúa las respuestas de comprensión, calcula score global `0.6 * production + 0.4 * comprehension` y define `passed >= 60`.
+- `GET /api/v1/summative/attempts?userId={id}`
+  Lista historial de summatives por estudiante.
+
+Seeds nuevos:
+
+- `src/main/resources/seeds/summative/tests.json`
+  Incluye 6 pruebas hand-crafted, una por `TaskType`, con distribución `A2 x1`, `B1 x3`, `B2 x2`.
+
+Referencias:
+
+- Douglas, D. (2000). *Assessing Languages for Specific Purposes*. Cambridge University Press.
+- Tam, N. T. T., & Tien, T. N. (2024). *Unveiling Critical Thinking Pedagogy: Classroom-Based Assessment Strategies in Higher Education*. rEFLections, 31(3). https://doi.org/10.61508/refl.v31i3.276846
+
+## Portfolio
+
+Sprint 7 agrega el módulo `portfolio/` para recolectar evidencia longitudinal sin pedir carga manual al estudiante. El snapshot combina:
+
+- tareas completadas y rewrites aceptados
+- crecimiento de vocabulario medido por `TextProfiler`
+- KCs dominados vía BKT
+- desempeño en summatives
+- evolución de `abilityTheta`
+
+El servicio mantiene snapshots `WEEKLY` y `ON_DEMAND`, reutiliza el historial ya existente y cachea la vista principal por menos de 24 horas para evitar recomputación innecesaria.
+
+Endpoints expuestos:
+
+- `GET /api/v1/portfolio/users/{userId}`
+  Devuelve el snapshot actual del estudiante.
+- `GET /api/v1/portfolio/users/{userId}/timeline`
+  Devuelve la línea de tiempo con tareas, summatives y hitos.
+- `GET /api/v1/portfolio/users/{userId}/history?weeks=12`
+  Devuelve snapshots históricos para gráficas.
+- `POST /api/v1/portfolio/recompute`
+  Recalcula snapshots para todos los usuarios.
+- `POST /api/v1/portfolio/users/{userId}/recompute`
+  Fuerza recomputación de un estudiante puntual.
+
+Base de diseño:
+
+- El portfolio auto-collect sigue la lógica de ePortfolio como evidencia continua de aprendizaje y desempeño auténtico descrita por ASEE Zone 1 (2014): no es solo un archivo final, sino un rastro acumulativo de trabajo.
+
+Referencia:
+
+- Wilkerson, S., & Knecht, R. (2014). *Enhancing Assessment of Experiential Learning in Engineering Education through Electronic Portfolios*. ASEE Zone 1 Conference. https://peer.asee.org/enhancing-assessment-of-experiential-learning-in-engineering-education-through-electronic-portfolios.pdf
+
+## Pilot
+
+Sprint 7 agrega el módulo `pilot/` para ejecutar estudios locales pre/post sin infraestructura cloud. El objetivo es producir evidencia medible con los targets del proyecto formal:
+
+- tasa de aceptación de rewrite `>= 60%`
+- mejora relativa de tiempo a primera acción `>= 20%`
+- retorno a 7 días `>= 25%`
+- tamaño de efecto medible en vocabulario técnico
+
+Componentes principales:
+
+- `PilotCohort`
+  Cohorte con state machine `ENROLLING -> PRE_TEST_PHASE -> INTERVENTION_PHASE -> POST_TEST_PHASE -> RESULTS_AVAILABLE -> ARCHIVED`.
+- `PilotEnrollment`
+  Inscripción por usuario con enlaces a instrumentos pre/post.
+- `CohenDCalculator`
+  Componente puro para tamaño de efecto.
+- hooks ligeros en tareas y summatives para `firstActionAt`, `lastActionAt` y `actionsCount`.
+
+Endpoints expuestos:
+
+- `POST /api/v1/pilot/cohorts`
+  Crea una cohorte piloto.
+- `GET /api/v1/pilot/cohorts`
+  Lista cohortes.
+- `GET /api/v1/pilot/cohorts/{id}`
+  Devuelve el detalle de una cohorte.
+- `POST /api/v1/pilot/cohorts/{id}/enroll?userId={id}`
+  Inscribe un usuario y genera instrumentos pre-test.
+- `PATCH /api/v1/pilot/cohorts/{id}/advance`
+  Avanza a una fase válida.
+- `POST /api/v1/pilot/cohorts/{id}/trigger-post-test`
+  Genera instrumentos post-test para todos los inscritos.
+- `GET /api/v1/pilot/cohorts/{id}/results`
+  Calcula métricas agregadas y desglose por estudiante.
+- `GET /api/v1/pilot/cohorts/{id}/enrollments`
+  Lista enrollments e intentos enlazados.
+
+Decisión operacional:
+
+- No se añadió deploy cloud. El piloto se corre localmente por decisión explícita del proyecto: primero validar datos, luego decidir si el costo de infraestructura se justifica.
 - `GET /api/v1/kc/{id}`
   Devuelve detalle de un KC, conteos y items relacionados.
 - `GET /api/v1/kc/items`

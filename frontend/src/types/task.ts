@@ -46,6 +46,11 @@ export interface TaskAttempt {
   llmFeedbackPayload?: TaskFeedbackPayload | null
   llmFeedbackCefr?: CefrLevel | null
   score: number | null
+  rewriteAnswerEn: string | null
+  rewriteFeedbackPayload?: TaskFeedbackPayload | null
+  rewriteScore: number | null
+  rewriteAccepted: boolean | null
+  rewriteSubmittedAt: string | null
   startedAt: string
   submittedAt: string | null
   completedAt: string | null
