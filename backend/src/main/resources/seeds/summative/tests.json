@@ -1,0 +1,80 @@
+[
+  {
+    "taskType": "ERROR_MESSAGE",
+    "cefrLevel": "A2",
+    "titleEs": "Diagnosticar un stack trace corto",
+    "descriptionEs": "Lee un error real de Node.js y explica el problema principal en ingles.",
+    "readingSpecEn": "TypeError: Cannot read properties of undefined (reading 'email')\n    at sendReceipt (/app/src/billing.js:42:19)\n    at processOrder (/app/src/orders.js:88:5)\nContext: The checkout flow should send a receipt after a successful payment. The bug appears only for guest users.",
+    "readingContextEs": "Lee el mensaje de error y el contexto. Identifica que objeto falta y en que parte del flujo ocurre el problema.",
+    "productionInstructionEs": "Escribe 2 o 3 oraciones en ingles explicando el bug y una accion inmediata para corregirlo.",
+    "productionExpectedAnswerEn": "The error happens because the code tries to read email from an undefined guest user object. It occurs when sendReceipt runs after checkout. We should validate the guest user data before sending the receipt.",
+    "comprehensionQuestionsJson": "[{\"question\":\"What is undefined in the stack trace?\",\"options\":[\"The payment object\",\"The guest user object\",\"The orders array\"],\"correctIdx\":1,\"explanation\":\"The code tries to read email from a missing user object.\"},{\"question\":\"Where does the failure appear first?\",\"options\":[\"sendReceipt\",\"processOrder\",\"checkout page render\"],\"correctIdx\":0,\"explanation\":\"The top stack frame shows the first failing function.\"},{\"question\":\"What is the best immediate fix?\",\"options\":[\"Rename the file\",\"Validate user data before sending the receipt\",\"Delete the receipt feature\"],\"correctIdx\":1,\"explanation\":\"Validation prevents the undefined access without changing unrelated code.\"}]",
+    "passingScore": 60,
+    "active": true
+  },
+  {
+    "taskType": "API_DOC",
+    "cefrLevel": "B1",
+    "titleEs": "Leer un endpoint REST de usuarios",
+    "descriptionEs": "Interpreta un fragmento de documentacion REST y resume el comportamiento esperado.",
+    "readingSpecEn": "GET /api/v1/users/{id}\nHeaders: Authorization: Bearer <token>\nResponse 200\n{\n  \"id\": 42,\n  \"email\": \"ana@fisi.unmsm.edu.pe\",\n  \"active\": true,\n  \"role\": \"STUDENT\"\n}\nResponse 404\n{\n  \"message\": \"User not found\"\n}\nNotes: Only authenticated admins can request any user. Students can request only their own profile.",
+    "readingContextEs": "Lee el endpoint y las reglas de acceso. Debes distinguir quien puede usarlo y que devuelve cuando falla.",
+    "productionInstructionEs": "Escribe un breve resumen en ingles explicando que hace el endpoint, quien puede acceder y que pasa si el usuario no existe.",
+    "productionExpectedAnswerEn": "This endpoint returns a user profile by id. Admins can access any user, but students can only request their own profile. If the user does not exist, the API returns a 404 error with a not found message.",
+    "comprehensionQuestionsJson": "[{\"question\":\"Which header is required?\",\"options\":[\"Content-Type\",\"Authorization\",\"If-Modified-Since\"],\"correctIdx\":1,\"explanation\":\"The documentation explicitly requires a Bearer token in Authorization.\"},{\"question\":\"Who can request any user profile?\",\"options\":[\"Any student\",\"Only admins\",\"Only teachers\"],\"correctIdx\":1,\"explanation\":\"The note says only admins can request any user.\"},{\"question\":\"What does the API return for a missing user?\",\"options\":[\"201 Created\",\"404 User not found\",\"500 Server crash\"],\"correctIdx\":1,\"explanation\":\"The error example shows a 404 response with a not found message.\"}]",
+    "passingScore": 60,
+    "active": true
+  },
+  {
+    "taskType": "COMMIT_MSG",
+    "cefrLevel": "B1",
+    "titleEs": "Evaluar un diff pequeño para commit",
+    "descriptionEs": "Lee un diff y redacta un commit message claro en ingles.",
+    "readingSpecEn": "diff --git a/src/auth/login.ts b/src/auth/login.ts\n@@\n-if (!user.email) {\n-  return\n-}\n+if (!user.email) {\n+  throw new Error('Missing user email before login audit log')\n+}\n@@\n-logAudit('login_success', user.email)\n+logAudit('login_success', user.email)\n+metrics.increment('auth.login.success')\n",
+    "readingContextEs": "El diff agrega validacion explicita para email faltante y una metrica de login exitoso.",
+    "productionInstructionEs": "Escribe un commit message en ingles siguiendo conventional commits y describiendo el cambio principal.",
+    "productionExpectedAnswerEn": "fix: validate missing user email before login audit log",
+    "comprehensionQuestionsJson": "[{\"question\":\"What is the main bug fix?\",\"options\":[\"Adding a new route\",\"Throwing an explicit error for missing email\",\"Removing the audit log\"],\"correctIdx\":1,\"explanation\":\"The diff changes a silent return into an explicit error for missing email.\"},{\"question\":\"What extra change was added?\",\"options\":[\"A success metric\",\"A new database table\",\"A feature flag\"],\"correctIdx\":0,\"explanation\":\"The diff increments an auth success metric.\"},{\"question\":\"Which commit style fits best?\",\"options\":[\"docs:\",\"fix:\",\"style:\"],\"correctIdx\":1,\"explanation\":\"The change fixes behavior and should use the fix conventional commit type.\"}]",
+    "passingScore": 60,
+    "active": true
+  },
+  {
+    "taskType": "PR_DESC",
+    "cefrLevel": "B1",
+    "titleEs": "Sintetizar una descripcion de PR",
+    "descriptionEs": "Lee cambios agrupados y escribe una descripcion breve de pull request.",
+    "readingSpecEn": "Summary of changes:\n- Added pagination to /api/v1/tasks with page and size parameters.\n- Updated frontend task list to keep filters in the URL.\n- Added tests for empty state and server-side pagination.\nImpact:\n- Teachers can browse larger task banks.\n- Students keep the selected filter after refresh.",
+    "readingContextEs": "Debes resumir objetivo, cambios y valor para el usuario final como si fuera la descripcion de un PR.",
+    "productionInstructionEs": "Escribe 3 oraciones en ingles para una descripcion de PR. Incluye que cambio, por que y como se valido.",
+    "productionExpectedAnswerEn": "This PR adds server-side pagination to the task list and keeps active filters in the URL. The goal is to make large task banks easier to browse for teachers and preserve the student's context after refresh. The change was validated with pagination and empty-state tests.",
+    "comprehensionQuestionsJson": "[{\"question\":\"Why was pagination added?\",\"options\":[\"To make task banks easier to browse\",\"To remove filters\",\"To hide tests\"],\"correctIdx\":0,\"explanation\":\"The impact section says pagination helps browse larger task banks.\"},{\"question\":\"What frontend behavior changed?\",\"options\":[\"Filters are stored in the URL\",\"The app switched frameworks\",\"Tasks are loaded offline only\"],\"correctIdx\":0,\"explanation\":\"The frontend now keeps filters in the URL.\"},{\"question\":\"How was the change validated?\",\"options\":[\"With pagination and empty-state tests\",\"With manual screenshots only\",\"Without any checks\"],\"correctIdx\":0,\"explanation\":\"The summary explicitly mentions tests for pagination and empty state.\"}]",
+    "passingScore": 60,
+    "active": true
+  },
+  {
+    "taskType": "CODE_REVIEW",
+    "cefrLevel": "B2",
+    "titleEs": "Responder a una observacion de code review",
+    "descriptionEs": "Analiza un comentario de revision y propone una respuesta tecnica clara en ingles.",
+    "readingSpecEn": "Review comment:\n\"This query loads all review cards and then filters them in memory. That will get slow for students with large decks. Please move the filtering into the repository and keep the sort by due date.\"\nCurrent implementation:\nList<ReviewCard> cards = reviewCardRepository.findByUserId(userId);\nreturn cards.stream().filter(card -> !card.isSuspended()).sorted(byDue).toList();",
+    "readingContextEs": "Debes mostrar que entendiste el riesgo de performance y proponer el cambio correcto en ingles profesional.",
+    "productionInstructionEs": "Escribe 2 o 3 oraciones en ingles respondiendo al review. Explica el cambio que haras y el beneficio esperado.",
+    "productionExpectedAnswerEn": "Good catch. I will move the suspended filter and due-date ordering into the repository query so we avoid loading unnecessary cards in memory. That should keep review sessions faster for students with large decks.",
+    "comprehensionQuestionsJson": "[{\"question\":\"What is the main risk in the current implementation?\",\"options\":[\"SQL injection\",\"In-memory filtering for large decks\",\"Missing CSS classes\"],\"correctIdx\":1,\"explanation\":\"The reviewer warns about performance from loading all cards before filtering.\"},{\"question\":\"What should stay the same after the fix?\",\"options\":[\"The due-date ordering\",\"The memory usage spike\",\"The missing repository layer\"],\"correctIdx\":0,\"explanation\":\"The review explicitly asks to keep the sort by due date.\"},{\"question\":\"What is the best response tone?\",\"options\":[\"Defensive and vague\",\"Professional and action-oriented\",\"Only one-word approval\"],\"correctIdx\":1,\"explanation\":\"Code review replies should acknowledge the issue and state the concrete fix.\"}]",
+    "passingScore": 60,
+    "active": true
+  },
+  {
+    "taskType": "TECH_REPORT",
+    "cefrLevel": "B2",
+    "titleEs": "Resumir un incidente tecnico corto",
+    "descriptionEs": "Lee un mini reporte de incidente y redacta una conclusion operativa en ingles.",
+    "readingSpecEn": "Incident summary:\n- Date: 2026-03-29\n- Service: notifications-worker\n- Duration: 18 minutes\n- Root cause: expired SMTP credentials after a secret rotation\n- User impact: password reset emails were delayed but not lost\n- Mitigation: credentials were updated and the worker queue was replayed\n- Follow-up: add credential expiry alert 7 days before rotation",
+    "readingContextEs": "Debes escribir una conclusion de reporte tecnico que explique causa, impacto y siguiente accion.",
+    "productionInstructionEs": "Escribe un breve cierre en ingles para el reporte tecnico. Incluye root cause, impact y follow-up.",
+    "productionExpectedAnswerEn": "The incident was caused by expired SMTP credentials after the secret rotation. Password reset emails were delayed for 18 minutes, but no messages were lost because the queue was replayed after the credentials were updated. The next step is to add an alert before credential expiry to prevent the same issue.",
+    "comprehensionQuestionsJson": "[{\"question\":\"What caused the incident?\",\"options\":[\"A database migration\",\"Expired SMTP credentials\",\"A frontend deploy\"],\"correctIdx\":1,\"explanation\":\"The incident summary identifies expired SMTP credentials as the root cause.\"},{\"question\":\"What was the user impact?\",\"options\":[\"Emails were delayed but not lost\",\"All password resets failed permanently\",\"Only admins were logged out\"],\"correctIdx\":0,\"explanation\":\"The report says password reset emails were delayed but not lost.\"},{\"question\":\"What is the follow-up action?\",\"options\":[\"Delete the queue worker\",\"Add a credential expiry alert\",\"Remove password resets\"],\"correctIdx\":1,\"explanation\":\"The final bullet asks for an alert before credential rotation expires.\"}]",
+    "passingScore": 60,
+    "active": true
+  }
+]
