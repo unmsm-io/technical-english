@@ -1,7 +1,18 @@
-import { Download } from "lucide-react"
+import { Download, FolderKanban } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router"
 import { getUsers } from "../api/users"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Button } from "../components/ui/button"
+import { EmptyState } from "../components/ui/empty-state"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
 import { PortfolioApi } from "../features/portfolio/PortfolioApi"
 import { AbilityTrendChart } from "../features/portfolio/components/AbilityTrendChart"
 import { GrowthHighlightsList } from "../features/portfolio/components/GrowthHighlightsList"
@@ -60,24 +71,22 @@ export function PortfolioPage() {
   }, [selectedUserId])
 
   const exportMarkdown = () => {
-    if (!portfolio || !timeline) {
-      return
-    }
+    if (!portfolio || !timeline) return
 
     const markdown = [
-      `# Portafolio de aprendizaje`,
-      ``,
+      "# Portafolio de aprendizaje",
+      "",
       `- Usuario: ${portfolio.userId}`,
       `- Tareas completadas: ${portfolio.tasksCompleted}`,
-      `- Rewrites aceptadas: ${Math.round(portfolio.rewriteAcceptanceRate * 100)}%`,
+      `- Reescrituras aceptadas: ${Math.round(portfolio.rewriteAcceptanceRate * 100)}%`,
       `- Vocabulario técnico: ${portfolio.vocabularySize}`,
       `- KCs dominados: ${portfolio.kcMasteredCount}`,
       `- Pruebas finales aprobadas: ${portfolio.summativeTestsPassed}`,
-      ``,
-      `## Highlights`,
+      "",
+      "## Highlights",
       ...portfolio.growthHighlights.map((item) => `- ${item.title}: ${item.afterText}`),
-      ``,
-      `## Timeline`,
+      "",
+      "## Timeline",
       ...timeline.entries.map((entry) => `- ${entry.type}: ${entry.title} (${entry.score ?? "sin score"})`),
     ].join("\n")
 
@@ -91,62 +100,56 @@ export function PortfolioPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Portafolio</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Evidencia auto-colectada de tareas, repaso, dominio técnico y pruebas finales.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <select
-            aria-label="Seleccionar usuario del portafolio"
-            value={selectedUserId ?? ""}
-            onChange={(event) => setSearchParams({ userId: event.target.value })}
-            className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500"
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.firstName} {user.lastName}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={exportMarkdown}
-            disabled={!portfolio || !timeline}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-          >
-            <Download className="h-4 w-4" />
+    <PageShell
+      actions={
+        <>
+          <div className="w-64">
+            <Select
+              onValueChange={(value) => setSearchParams(value === "none" ? {} : { userId: value })}
+              value={selectedUserId ? String(selectedUserId) : "none"}
+            >
+              <SelectTrigger aria-label="Seleccionar estudiante">
+                <SelectValue placeholder="Selecciona un usuario" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Selecciona un usuario</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={String(user.id)}>
+                    {user.firstName} {user.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button disabled={!portfolio || !timeline} onClick={exportMarkdown} variant="outline">
+            <Download className="size-4" />
             Imprimir/exportar
-          </button>
-        </div>
-      </section>
-
+          </Button>
+        </>
+      }
+      subtitle="Evidencia auto-colectada de tareas, repaso, dominio técnico y pruebas finales."
+      title="Portafolio"
+    >
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-64 animate-pulse rounded-3xl bg-slate-100" />
-          ))}
-        </div>
+        <div className="text-sm text-muted-foreground">Cargando portafolio...</div>
       ) : error ? (
-        <div className="rounded-3xl border border-red-200 bg-red-50 px-6 py-10 text-center text-sm text-red-700">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertTitle>Error de carga</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : !portfolio || !timeline ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
-          <p className="text-sm font-medium text-slate-900">Aún no hay actividad para este estudiante.</p>
-          <p className="mt-2 text-sm text-slate-600">
-            Empieza con un diagnóstico o una tarea para construir el portafolio.
-          </p>
-          <Link
-            to={selectedUserId ? `/diagnostic/start?userId=${selectedUserId}` : "/diagnostic/start"}
-            className="mt-4 inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            Ir al diagnóstico
-          </Link>
-        </div>
+        <EmptyState
+          action={
+            <Button asChild>
+              <Link to={selectedUserId ? `/diagnostic/start?userId=${selectedUserId}` : "/diagnostic/start"}>
+                Ir al diagnóstico
+              </Link>
+            </Button>
+          }
+          description="Empieza con un diagnóstico o una tarea para construir el portafolio."
+          icon={FolderKanban}
+          title="Aún no hay actividad para este estudiante"
+        />
       ) : (
         <>
           <PortfolioSummaryCard portfolio={portfolio} />
@@ -158,6 +161,6 @@ export function PortfolioPage() {
           <VocabularyGrowthChart snapshots={history} />
         </>
       )}
-    </div>
+    </PageShell>
   )
 }

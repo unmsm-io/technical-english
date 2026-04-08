@@ -1,3 +1,5 @@
+import { Progress } from "../../../components/ui/progress"
+
 interface ReviewProgressBarProps {
   reviewed: number
   remaining: number
@@ -9,16 +11,11 @@ export function ReviewProgressBar({ reviewed, remaining }: ReviewProgressBarProp
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>Progreso de la sesión</span>
-        <span>{progress}%</span>
+        <span className="tabular-nums">{progress}%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-        <div
-          className="h-full rounded-full bg-blue-600 transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      <Progress value={progress} />
     </div>
   )
 }

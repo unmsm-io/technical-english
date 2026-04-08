@@ -1,24 +1,33 @@
 import { BookOpen } from "lucide-react"
+import { Link } from "react-router"
+import { PageShell } from "../components/layout/page-shell"
+import { Button } from "../components/ui/button"
+import { EmptyState } from "../components/ui/empty-state"
 
 export function ContentPage() {
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Course Content</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Technical English syllabus, modules, and lessons
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
-        <BookOpen className="mx-auto h-12 w-12 text-gray-300" />
-        <h3 className="mt-4 text-lg font-medium text-gray-900">
-          Coming in Phase 2
-        </h3>
-        <p className="mt-2 text-sm text-gray-500">
-          Course modules, lessons, and learning materials will be available here.
-        </p>
-      </div>
-    </div>
+    <PageShell
+      subtitle="Materiales, módulos y lecciones del curso técnico."
+      title="Contenido"
+    >
+      <EmptyState
+        action={
+          <>
+            <Button asChild variant="outline">
+              <Link to="/tasks">Ir a tareas</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/vocabulary">Explorar vocabulario</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/summative">Ver pruebas finales</Link>
+            </Button>
+          </>
+        }
+        description="Este módulo sigue en desarrollo. Mientras tanto puedes continuar con tareas, vocabulario o pruebas finales."
+        icon={BookOpen}
+        title="Módulo en desarrollo"
+      />
+    </PageShell>
   )
 }

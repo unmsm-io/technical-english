@@ -1,35 +1,19 @@
-import { Clock3, Loader2, PlayCircle } from "lucide-react"
+import { Loader2, PlayCircle } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { getUser } from "../api/users"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../components/ui/breadcrumb"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { MetricCard } from "../components/ui/metric-card"
 import { TaskApi } from "../features/task/TaskApi"
 import { TaskTypeBadge } from "../features/task/components/TaskTypeBadge"
 import { useTaskStore } from "../features/task/taskStore"
 import { CefrBadge } from "../features/vocabulary/components/CefrBadge"
 import type { User } from "../types"
 import type { TaskDetail } from "../types/task"
-
-function TaskDetailBreadcrumb({ title }: { title: string }) {
-  return (
-    <nav aria-label="Breadcrumb" className="mb-6">
-      <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-        <li>
-          <Link to="/" className="transition hover:text-gray-900">
-            Home
-          </Link>
-        </li>
-        <li>&gt;</li>
-        <li>
-          <Link to="/tasks" className="transition hover:text-gray-900">
-            Tareas
-          </Link>
-        </li>
-        <li>&gt;</li>
-        <li className="font-medium text-gray-900">{title}</li>
-      </ol>
-    </nav>
-  )
-}
 
 export function TaskDetailPage() {
   const { id } = useParams()
@@ -91,7 +75,6 @@ export function TaskDetailPage() {
     try {
       const attempt = await TaskApi.startAttempt(selectedUserId, task.id)
       startTask(task, attempt)
-
       navigate(`/tasks/${task.id}/run?attemptId=${attempt.id}&userId=${selectedUserId}`)
     } catch {
       setError("No se pudo iniciar la tarea.")
@@ -100,106 +83,137 @@ export function TaskDetailPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-      </div>
-    )
-  }
-
-  if (error || !task) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center">
-        <p className="text-sm text-red-700">
-          {error ?? "No se encontró la tarea solicitada."}
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <TaskDetailBreadcrumb title={task.titleEs} />
+    <PageShell
+      actions={
+        selectedUser ? (
+          <Button disabled={starting} onClick={handleStartTask}>
+            {starting ? <Loader2 className="size-4 animate-spin" /> : <PlayCircle className="size-4" />}
+            Comenzar tarea
+          </Button>
+        ) : (
+          <Button asChild variant="outline">
+            <Link to="/users">Seleccionar usuario</Link>
+          </Button>
+        )
+      }
+      subtitle="Vista previa de contexto, nivel, vocabulario asociado y duración estimada antes de iniciar."
+      title={task?.titleEs ?? "Detalle de tarea"}
+    >
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/">Panel</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/tasks">Tareas</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{task?.titleEs ?? "Detalle"}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <TaskTypeBadge type={task.taskType} />
-              <CefrBadge level={task.cefrLevel} />
-            </div>
-            <h1 className="text-2xl font-semibold text-gray-900">{task.titleEs}</h1>
-            <p className="max-w-3xl text-sm leading-7 text-gray-600">
-              {task.descriptionEs}
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Vocabulario relacionado
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">
-                {task.vocabularyItems.length}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Duración estimada
-              </p>
-              <p className="mt-2 flex items-center gap-2 text-2xl font-semibold text-slate-900">
-                <Clock3 className="h-5 w-5 text-slate-500" />
-                {estimatedDuration} min
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Vista previa del pre-task</h2>
-        <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-gray-700">
-          {task.preTaskContextEn}
-        </p>
-      </section>
-
-      {selectedUser ? (
-        <section className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
-          <p className="text-sm text-blue-900">
-            La tarea se iniciará para {selectedUser.firstName} {selectedUser.lastName}.
-          </p>
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={handleStartTask}
-              disabled={starting}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {starting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <PlayCircle className="h-4 w-4" />
-              )}
-              Comenzar tarea
-            </button>
-          </div>
-        </section>
+      {loading ? (
+        <Card>
+          <CardContent className="flex items-center justify-center py-16">
+            <Loader2 className="size-6 animate-spin" />
+          </CardContent>
+        </Card>
+      ) : error || !task ? (
+        <Alert variant="destructive">
+          <AlertTitle>No se pudo abrir la tarea</AlertTitle>
+          <AlertDescription>{error ?? "No se encontró la tarea solicitada."}</AlertDescription>
+        </Alert>
       ) : (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <p className="text-sm text-amber-900">
-            Para registrar el intento necesitas seleccionar un usuario.
-          </p>
-          <Link
-            to="/users"
-            className="mt-4 inline-flex rounded-xl border border-amber-300 px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
-          >
-            Ir a la lista de usuarios
-          </Link>
-        </section>
-      )}
+        <>
+          <Card>
+            <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <TaskTypeBadge type={task.taskType} />
+                  <CefrBadge level={task.cefrLevel} />
+                </div>
+                <CardTitle className="text-2xl">{task.titleEs}</CardTitle>
+                <CardDescription className="max-w-3xl text-sm leading-7">
+                  {task.descriptionEs}
+                </CardDescription>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MetricCard label="Vocabulario relacionado" value={task.vocabularyItems.length} />
+                <MetricCard
+                  context="Lectura de contexto + producción"
+                  label="Duración estimada"
+                  value={`${estimatedDuration} min`}
+                />
+              </div>
+            </CardHeader>
+          </Card>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-    </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Vista previa del pre-task</CardTitle>
+              <CardDescription>Contexto inicial que el estudiante debe leer antes de responder.</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm leading-7 text-muted-foreground">
+              {task.preTaskContextEn}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Vocabulario asociado</CardTitle>
+              <CardDescription>Términos que aparecen en el flujo o que conviene repasar antes de empezar.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {task.vocabularyItems.length > 0 ? (
+                task.vocabularyItems.map((item) => (
+                  <Card className="border-dashed" key={item.id}>
+                    <CardContent className="space-y-1 p-4">
+                      <div className="font-medium">{item.term}</div>
+                      <div className="text-sm text-muted-foreground">{item.definition}</div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Alert>
+                  <AlertTitle>Sin vocabulario adicional</AlertTitle>
+                  <AlertDescription>Esta tarea no requiere términos enlazados para completarse.</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+
+          {selectedUser ? (
+            <Alert>
+              <AlertTitle>Intento listo para iniciar</AlertTitle>
+              <AlertDescription>
+                La tarea se iniciará para {selectedUser.firstName} {selectedUser.lastName}.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert variant="warning">
+              <AlertTitle>Falta seleccionar un usuario</AlertTitle>
+              <AlertDescription>
+                Para registrar el intento necesitas elegir un estudiante antes de empezar.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+        </>
+      )}
+    </PageShell>
   )
 }

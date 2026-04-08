@@ -83,7 +83,7 @@ describe("VocabularyPage", () => {
   it("renders rows, applies debounced search, and paginates on the server", async () => {
     const view = renderPage()
 
-    expect(await view.findByText("analysis")).toBeTruthy()
+    expect((await view.findAllByText("analysis")).length).toBeGreaterThan(0)
     expect(getVocabulary).toHaveBeenCalledWith({
       q: undefined,
       layer: undefined,
@@ -93,7 +93,7 @@ describe("VocabularyPage", () => {
     })
 
     await userEvent.type(
-      view.getByPlaceholderText("Buscar termino o definicion"),
+      view.getByPlaceholderText("Buscar término o definición"),
       "queue"
     )
 
@@ -112,7 +112,7 @@ describe("VocabularyPage", () => {
 
     await userEvent.click(view.getByRole("button", { name: "Siguiente" }))
 
-    expect(await view.findByText("queue")).toBeTruthy()
+    expect((await view.findAllByText("queue")).length).toBeGreaterThan(0)
     expect(getVocabulary).toHaveBeenCalledWith({
       q: "queue",
       layer: undefined,

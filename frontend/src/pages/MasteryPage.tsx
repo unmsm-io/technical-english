@@ -1,7 +1,21 @@
-import { Loader2, RefreshCcw } from "lucide-react"
+import { RefreshCcw, Radar } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router"
 import { getUsers } from "../api/users"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { EmptyState } from "../components/ui/empty-state"
+import { MetricCard } from "../components/ui/metric-card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "../components/ui/table"
 import { MasteryApi } from "../features/mastery/MasteryApi"
 import { AcquisitionLineChart } from "../features/mastery/components/AcquisitionLineChart"
 import { FlowStateCard } from "../features/mastery/components/FlowStateCard"
@@ -9,13 +23,7 @@ import { KcMasteryRow } from "../features/mastery/components/KcMasteryRow"
 import { MasteryProgressRing } from "../features/mastery/components/MasteryProgressRing"
 import { MasteryRadarChart } from "../features/mastery/components/MasteryRadarChart"
 import { StabilityHeatmapChart } from "../features/mastery/components/StabilityHeatmapChart"
-import type {
-  AcquisitionRateResponse,
-  FlowAlertResponse,
-  MasteryRadarResponse,
-  StabilityHeatmapResponse,
-  User,
-} from "../types"
+import type { AcquisitionRateResponse, FlowAlertResponse, MasteryRadarResponse, StabilityHeatmapResponse, User } from "../types"
 
 export function MasteryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -39,9 +47,7 @@ export function MasteryPage() {
           setSearchParams(nextParams, { replace: true })
         }
       })
-      .catch(() => {
-        setError("No se pudieron cargar los usuarios para mastery.")
-      })
+      .catch(() => setError("No se pudieron cargar los usuarios para mastery."))
   }, [searchParams, selectedUserId, setSearchParams])
 
   useEffect(() => {
@@ -65,9 +71,7 @@ export function MasteryPage() {
         setAcquisition(acquisitionData)
         setFlowAlert(flowData)
       })
-      .catch(() => {
-        setError("No se pudo cargar el dashboard de dominio.")
-      })
+      .catch(() => setError("No se pudo cargar el dashboard de dominio."))
       .finally(() => {
         setLoading(false)
         setRefreshing(false)
@@ -80,10 +84,7 @@ export function MasteryPage() {
   )
 
   const handleRefresh = async () => {
-    if (!selectedUserId) {
-      return
-    }
-
+    if (!selectedUserId) return
     setRefreshing(true)
     try {
       await MasteryApi.recompute(selectedUserId)
@@ -105,129 +106,136 @@ export function MasteryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-slate-900">Mi dominio</h1>
-          <p className="text-sm text-slate-600">
-            Seguimiento de mastery BKT, estabilidad de repaso y estado de flow.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <select
-            aria-label="Usuario para mastery"
-            value={selectedUserId ?? ""}
-            onChange={(event) => {
-              const nextParams = new URLSearchParams(searchParams)
-              if (event.target.value) {
-                nextParams.set("userId", event.target.value)
-              } else {
-                nextParams.delete("userId")
-              }
-              setSearchParams(nextParams, { replace: true })
-            }}
-            className="min-w-64 rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500"
-          >
-            <option value="">Selecciona un usuario</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.firstName} {user.lastName}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={!selectedUserId || refreshing}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
-            Recalcular
-          </button>
-        </div>
-      </div>
-
+    <PageShell
+      actions={
+        <>
+          <div className="w-64">
+            <Select
+              onValueChange={(value) => {
+                const nextParams = new URLSearchParams(searchParams)
+                if (value && value !== "none") nextParams.set("userId", value)
+                else nextParams.delete("userId")
+                setSearchParams(nextParams, { replace: true })
+              }}
+              value={selectedUserId ? String(selectedUserId) : "none"}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un usuario" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Selecciona un usuario</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={String(user.id)}>
+                    {user.firstName} {user.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button disabled={!selectedUserId || refreshing} onClick={handleRefresh} variant="outline">
+            <RefreshCcw className="size-4" />
+            {refreshing ? "Recalculando..." : "Recalcular"}
+          </Button>
+        </>
+      }
+      subtitle="Seguimiento de mastery BKT, estabilidad de repaso y estado de flow."
+      title="Mi dominio"
+    >
       {selectedUser ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-600">Estudiante seleccionado</p>
-          <p className="mt-2 text-xl font-semibold text-slate-950">
-            {selectedUser.firstName} {selectedUser.lastName}
-          </p>
-          <p className="mt-1 text-sm text-slate-500">
-            {selectedUser.englishLevel ?? "Sin nivel"} · {selectedUser.email}
-          </p>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Estudiante seleccionado</p>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                {selectedUser.firstName} {selectedUser.lastName}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {selectedUser.englishLevel ?? "Sin nivel"} · {selectedUser.email}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <MetricCard label="Nivel" value={selectedUser.englishLevel ?? "-"} />
+              <MetricCard label="Vocabulario" value={selectedUser.vocabularySize ?? 0} />
+              <MetricCard label="Diagnóstico" value={selectedUser.diagnosticCompleted ? "Sí" : "No"} />
+            </div>
+          </CardContent>
+        </Card>
       ) : null}
 
       {loading ? (
-        <div className="flex items-center justify-center rounded-3xl border border-slate-200 bg-white py-20 shadow-sm">
-          <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
-        </div>
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">Cargando dominio...</CardContent>
+        </Card>
       ) : !selectedUserId ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">
-          Selecciona un usuario para abrir su panel de dominio.
-        </div>
+        <EmptyState
+          description="Selecciona un usuario para abrir su panel de dominio."
+          icon={Radar}
+          title="Sin estudiante activo"
+        />
       ) : error ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertTitle>Error de carga</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : radar && stability && acquisition && flowAlert ? (
         <>
-          <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-            <MasteryProgressRing
-              masteredCount={radar.masteredCount}
-              totalKcs={radar.totalKcs}
-            />
+          <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+            <MasteryProgressRing masteredCount={radar.masteredCount} totalKcs={radar.totalKcs} />
             <FlowStateCard flowState={flowAlert.flowState} />
-          </div>
+          </section>
 
           <MasteryRadarChart entries={radar.kcs} />
 
-          <div className="grid gap-6 xl:grid-cols-2">
+          <section className="grid gap-6 xl:grid-cols-2">
             <StabilityHeatmapChart buckets={stability.buckets} />
             <AcquisitionLineChart points={acquisition.points} />
-          </div>
-
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-5 py-4">
-              <h2 className="text-lg font-semibold text-slate-900">Knowledge components</h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Detalle del estado actual de cada component trazado por BKT.
-              </p>
-            </div>
-            {radar.kcs.length === 0 ? (
-              <div className="px-5 py-12 text-center text-sm text-slate-500">
-                Este estudiante aún no tiene datos suficientes para mostrar KCs.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <tr>
-                      <th className="px-5 py-3">Knowledge component</th>
-                      <th className="px-5 py-3">P(L)</th>
-                      <th className="px-5 py-3">Respuestas</th>
-                      <th className="px-5 py-3">Acierto</th>
-                      <th className="px-5 py-3">Mastery</th>
-                      <th className="px-5 py-3 text-right">Detalle</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {radar.kcs.map((entry) => (
-                      <KcMasteryRow key={entry.kcId} entry={entry} userId={selectedUserId} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </section>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Knowledge components</CardTitle>
+              <CardDescription>Detalle del estado actual de cada component trazado por BKT.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {radar.kcs.length === 0 ? (
+                <div className="px-6 pb-6">
+                  <EmptyState
+                    description="Este estudiante todavía no tiene suficientes interacciones para mostrar KCs."
+                    icon={Radar}
+                    title="Sin knowledge components"
+                  />
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Knowledge component</TableHead>
+                        <TableHead>P(L)</TableHead>
+                        <TableHead>Respuestas</TableHead>
+                        <TableHead>Acierto</TableHead>
+                        <TableHead>Mastery</TableHead>
+                        <TableHead className="text-right">Detalle</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {radar.kcs.map((entry) => (
+                        <KcMasteryRow entry={entry} key={entry.kcId} userId={selectedUserId} />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </>
       ) : (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">
-          No hay datos de mastery disponibles para este estudiante.
-        </div>
+        <EmptyState
+          description="Todavía no hay suficiente actividad para mostrar métricas de mastery."
+          icon={Radar}
+          title="Sin datos de dominio"
+        />
       )}
-    </div>
+    </PageShell>
   )
 }

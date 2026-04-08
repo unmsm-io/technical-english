@@ -121,7 +121,7 @@ describe("TaskListPage", () => {
   it("renders rows, applies filters, and paginates on the server", async () => {
     const view = renderPage()
 
-    expect(await view.findByText("Analiza un stack trace")).toBeTruthy()
+    expect((await view.findAllByText("Analiza un stack trace")).length).toBeGreaterThan(0)
     expect(list).toHaveBeenCalledWith({
       type: undefined,
       cefr: undefined,
@@ -130,10 +130,8 @@ describe("TaskListPage", () => {
       size: 10,
     })
 
-    await userEvent.selectOptions(
-      view.getByRole("combobox", { name: "Filtrar por tipo de tarea" }),
-      "ERROR_MESSAGE"
-    )
+    await userEvent.click(view.getByRole("combobox", { name: "Filtrar por tipo de tarea" }))
+    await userEvent.click(await view.findByRole("option", { name: "Mensaje de error" }))
 
     await waitFor(() => {
       expect(list).toHaveBeenCalledWith({
@@ -159,7 +157,7 @@ describe("TaskListPage", () => {
 
     await userEvent.click(view.getByRole("button", { name: "Siguiente" }))
 
-    expect(await view.findByText("Reporte de benchmarks")).toBeTruthy()
+    expect((await view.findAllByText("Reporte de benchmarks")).length).toBeGreaterThan(0)
     expect(list).toHaveBeenCalledWith({
       type: "ERROR_MESSAGE",
       cefr: "B1",

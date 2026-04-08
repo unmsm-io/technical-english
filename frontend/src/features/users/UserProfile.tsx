@@ -1,30 +1,29 @@
+import { Building, Calendar, ClipboardCheck, GraduationCap, Mail, Pencil, Trash2, UserCircle2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate, useParams, Link } from "react-router"
-import {
-  ArrowLeft,
-  Pencil,
-  Trash2,
-  Loader2,
-  Mail,
-  GraduationCap,
-  Building,
-  Calendar,
-  ClipboardCheck,
-} from "lucide-react"
+import { Link, useNavigate, useParams } from "react-router"
 import { deleteUser, getUser, patchUserProfile } from "../../api/users"
+import { PageShell } from "../../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
+import { Avatar, AvatarFallback } from "../../components/ui/avatar"
+import { Badge } from "../../components/ui/badge"
+import { Button } from "../../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Checkbox } from "../../components/ui/checkbox"
+import { EmptyState } from "../../components/ui/empty-state"
+import { MetricCard } from "../../components/ui/metric-card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { getDiagnosticHistory } from "../diagnostic/DiagnosticApi"
+import { MasteryApi } from "../mastery/MasteryApi"
+import { MasteryRadarChart } from "../mastery/components/MasteryRadarChart"
+import { PortfolioApi } from "../portfolio/PortfolioApi"
 import { ReviewApi } from "../review/ReviewApi"
 import { TaskApi } from "../task/TaskApi"
-import { MasteryApi } from "../mastery/MasteryApi"
-import { PortfolioApi } from "../portfolio/PortfolioApi"
-import { MasteryRadarChart } from "../mastery/components/MasteryRadarChart"
 import { TaskTypeBadge } from "../task/components/TaskTypeBadge"
-import type { DiagnosticAttemptHistory } from "../../types/diagnostic"
-import type { ReviewStats } from "../../types/review"
-import type { TaskAttemptHistoryItem } from "../../types/task"
 import type { User } from "../../types"
-import type { MasteryRadarResponse } from "../../types"
+import type { DiagnosticAttemptHistory } from "../../types/diagnostic"
+import type { MasteryRadarResponse, ReviewStats } from "../../types"
 import type { PortfolioResponse } from "../../types/portfolio"
+import type { TaskAttemptHistoryItem } from "../../types/task"
 
 const targetSkillOptions = [
   { value: "READING_DOCS", label: "Lectura de documentación" },
@@ -60,9 +59,7 @@ export function UserProfile() {
         setSelectedSkills(userData.targetSkills)
         if (userData.englishLevel) {
           ReviewApi.getStats(userId).then(setReviewStats).catch(() => setReviewStats(null))
-          MasteryApi.getStudentMasteryRadar(userId)
-            .then(setMasteryRadar)
-            .catch(() => setMasteryRadar(null))
+          MasteryApi.getStudentMasteryRadar(userId).then(setMasteryRadar).catch(() => setMasteryRadar(null))
         }
         PortfolioApi.getCurrent(userId).then(setPortfolio).catch(() => setPortfolio(null))
       })
@@ -70,27 +67,13 @@ export function UserProfile() {
       .finally(() => setLoading(false))
   }, [id])
 
-  const roleBadge = useMemo(
-    () => (role: string) => {
-      const colors: Record<string, string> = {
-        STUDENT: "bg-green-100 text-green-700",
-        TEACHER: "bg-blue-100 text-blue-700",
-        ADMIN: "bg-purple-100 text-purple-700",
-      }
-
-      return (
-        <span
-          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${colors[role]}`}
-        >
-          {role}
-        </span>
-      )
-    },
+  const roleVariant = useMemo(
+    () => (role: string) => (role === "ADMIN" ? "default" : role === "TEACHER" ? "secondary" : "outline"),
     []
   )
 
   const handleDelete = async () => {
-    if (!confirm("¿Seguro que deseas eliminar este usuario?")) return
+    if (!window.confirm("¿Seguro que deseas eliminar este usuario?")) return
     try {
       await deleteUser(Number(id))
       navigate("/users")
@@ -101,9 +84,7 @@ export function UserProfile() {
 
   const handleToggleSkill = (value: string) => {
     setSelectedSkills((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value]
+      current.includes(value) ? current.filter((item) => item !== value) : [...current, value]
     )
   }
 
@@ -112,13 +93,12 @@ export function UserProfile() {
     setSaving(true)
     setSaveMessage(null)
     setError(null)
-
     try {
       const updatedUser = await patchUserProfile(user.id, {
-        targetSkills: selectedSkills,
-        vocabularySize: user.vocabularySize ?? undefined,
         diagnosticCompleted: user.diagnosticCompleted,
         diagnosticCompletedAt: user.diagnosticCompletedAt ?? undefined,
+        targetSkills: selectedSkills,
+        vocabularySize: user.vocabularySize ?? undefined,
       })
       setUser(updatedUser)
       setSaveMessage("Perfil actualizado correctamente.")
@@ -130,354 +110,273 @@ export function UserProfile() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-      </div>
-    )
+    return <div className="py-12 text-center text-sm text-muted-foreground">Cargando perfil...</div>
   }
 
   if (error || !user) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-gray-500">{error || "User not found"}</p>
-        <Link to="/users" className="mt-2 text-sm text-blue-600 hover:underline">
-          Volver a usuarios
-        </Link>
-      </div>
+      <PageShell subtitle="No se pudo abrir el perfil solicitado." title="Perfil de usuario">
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error || "Usuario no encontrado."}</AlertDescription>
+        </Alert>
+      </PageShell>
     )
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <button
-        onClick={() => navigate("/users")}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-700"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Volver a usuarios
-      </button>
-
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-gray-200 p-6 lg:flex-row lg:items-start lg:justify-between">
+    <PageShell
+      actions={
+        <>
+          <Button onClick={() => navigate(`/users/${user.id}/edit`)} variant="outline">
+            <Pencil className="size-4" />
+            Editar
+          </Button>
+          <Button onClick={handleDelete} variant="ghost">
+            <Trash2 className="size-4" />
+            Eliminar
+          </Button>
+        </>
+      }
+      subtitle="Resumen académico, seguimiento y actividad reciente del estudiante."
+      title="Perfil de usuario"
+    >
+      <Card>
+        <CardContent className="flex flex-col gap-6 pt-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-xl font-semibold text-blue-700">
-              {user.firstName[0]}
-              {user.lastName[0]}
-            </div>
+            <Avatar className="size-16">
+              <AvatarFallback>
+                <UserCircle2 className="size-8" />
+              </AvatarFallback>
+            </Avatar>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-2xl font-semibold tracking-tight">
                 {user.firstName} {user.lastName}
-              </h1>
-              <p className="font-mono text-sm text-gray-500">{user.codigo}</p>
-              <div className="mt-1">{roleBadge(user.role)}</div>
+              </h2>
+              <p className="font-mono text-sm text-muted-foreground">{user.codigo}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Badge variant={roleVariant(user.role) as "default" | "outline" | "secondary"}>{user.role}</Badge>
+                {user.englishLevel ? <Badge variant="outline">{user.englishLevel}</Badge> : null}
+              </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => navigate(`/users/${user.id}/edit`)}
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-            >
-              <Pencil className="h-4 w-4" />
-              Editar
-            </button>
-            <button
-              onClick={handleDelete}
-              className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-              Eliminar
-            </button>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <InfoBlock icon={<Mail className="size-4" />} label="Email" value={user.email} />
+            <InfoBlock icon={<GraduationCap className="size-4" />} label="Nivel" value={user.englishLevel || "No asignado"} />
+            <InfoBlock icon={<Building className="size-4" />} label="Facultad" value={user.faculty || "No registrada"} />
+            <InfoBlock icon={<Calendar className="size-4" />} label="Registro" value={new Date(user.createdAt).toLocaleDateString()} />
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="grid gap-6 p-6 md:grid-cols-2">
-          <InfoBlock icon={<Mail className="mt-0.5 h-5 w-5 text-gray-400" />} label="Email" value={user.email} />
-          <InfoBlock
-            icon={<GraduationCap className="mt-0.5 h-5 w-5 text-gray-400" />}
-            label="Nivel CEFR"
-            value={user.englishLevel || "No asignado"}
-          />
-          <InfoBlock
-            icon={<Building className="mt-0.5 h-5 w-5 text-gray-400" />}
-            label="Facultad"
-            value={user.faculty || "No registrada"}
-          />
-          <InfoBlock
-            icon={<Calendar className="mt-0.5 h-5 w-5 text-gray-400" />}
-            label="Registrado"
-            value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
-          />
-        </div>
-      </div>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="mastery">Mastery</TabsTrigger>
+          <TabsTrigger value="portfolio">Portafolio</TabsTrigger>
+          <TabsTrigger value="tasks">Tareas</TabsTrigger>
+          <TabsTrigger value="reviews">Repaso</TabsTrigger>
+          <TabsTrigger value="activity">Actividad</TabsTrigger>
+        </TabsList>
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Nivel e intereses</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Ajusta los objetivos del estudiante y lanza el diagnostico desde
-              este perfil.
-            </p>
-          </div>
-          <Link
-            to={`/diagnostic/start?userId=${user.id}`}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            <ClipboardCheck className="h-4 w-4" />
-            Tomar diagnóstico
-          </Link>
-        </div>
+        <TabsContent className="space-y-6" value="overview">
+          <Card>
+            <CardHeader>
+              <CardTitle>Nivel e intereses</CardTitle>
+              <CardDescription>Ajusta objetivos del estudiante y lanza el diagnóstico desde este perfil.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-3">
+                <MetricCard label="Diagnóstico" value={user.diagnosticCompleted ? "Completado" : "Pendiente"} />
+                <MetricCard label="Tamaño vocabular" value={user.vocabularySize ?? "Sin estimar"} />
+                <MetricCard label="Último diagnóstico" value={user.diagnosticCompletedAt ? new Date(user.diagnosticCompletedAt).toLocaleDateString() : "Sin fecha"} />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {targetSkillOptions.map((option) => {
+                  const checked = selectedSkills.includes(option.value)
+                  return (
+                    <label className="flex items-start gap-3 rounded-lg border p-4" key={option.value}>
+                      <Checkbox checked={checked} onCheckedChange={() => handleToggleSkill(option.value)} />
+                      <span className="text-sm">{option.label}</span>
+                    </label>
+                  )
+                })}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button onClick={handleSaveProfile}>{saving ? "Guardando..." : "Guardar intereses"}</Button>
+                <Button asChild variant="outline">
+                  <Link to={`/diagnostic/start?userId=${user.id}`}>
+                    <ClipboardCheck className="size-4" />
+                    Tomar diagnóstico
+                  </Link>
+                </Button>
+              </div>
+              {saveMessage ? (
+                <Alert variant="success">
+                  <AlertTitle>Perfil actualizado</AlertTitle>
+                  <AlertDescription>{saveMessage}</AlertDescription>
+                </Alert>
+              ) : null}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <MetricCard label="Diagnóstico" value={user.diagnosticCompleted ? "Completado" : "Pendiente"} />
-          <MetricCard label="Tamaño vocabular" value={user.vocabularySize ? `${user.vocabularySize}` : "Sin estimar"} />
-          <MetricCard
-            label="Último diagnóstico"
-            value={
-              user.diagnosticCompletedAt
-                ? new Date(user.diagnosticCompletedAt).toLocaleDateString()
-                : "Sin fecha"
-            }
-          />
-        </div>
-
-        <div className="mt-6">
-          <p className="mb-3 text-sm font-medium text-gray-700">Target skills</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {targetSkillOptions.map((option) => {
-              const checked = selectedSkills.includes(option.value)
-              return (
-                <label
-                  key={option.value}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-sm transition ${
-                    checked
-                      ? "border-blue-500 bg-blue-50 text-blue-900"
-                      : "border-gray-200 bg-white text-gray-700"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => handleToggleSkill(option.value)}
-                    className="h-4 w-4 rounded border-gray-300"
+        <TabsContent className="space-y-6" value="mastery">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mi dominio del inglés técnico</CardTitle>
+              <CardDescription>Resumen por knowledge component y acceso al panel completo de mastery.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+              <div className="rounded-lg border bg-muted/20 p-4">
+                {masteryRadar ? (
+                  <MasteryRadarChart entries={masteryRadar.kcs.slice(0, 6)} size={280} />
+                ) : (
+                  <EmptyState
+                    description="El radar aparecerá cuando existan respuestas suficientes de diagnóstico, tareas o repaso."
+                    icon={GraduationCap}
+                    title="Sin radar disponible"
                   />
-                  <span>{option.label}</span>
-                </label>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={handleSaveProfile}
-            disabled={saving}
-            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? "Guardando..." : "Guardar intereses"}
-          </button>
-          {saveMessage ? <p className="text-sm text-emerald-600">{saveMessage}</p> : null}
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Portafolio</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Evidencia auto-colectada de tareas, rewrites, vocabulario y pruebas finales.
-            </p>
-          </div>
-          <Link
-            to={`/portfolio?userId=${user.id}`}
-            className="inline-flex items-center justify-center rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50"
-          >
-            Abrir portafolio
-          </Link>
-        </div>
-
-        {portfolio ? (
-          <div className="mt-5 grid gap-4 md:grid-cols-4">
-            <MetricCard label="Tareas" value={`${portfolio.tasksCompleted}`} />
-            <MetricCard label="Vocabulario" value={`${portfolio.vocabularySize}`} />
-            <MetricCard label="KCs" value={`${portfolio.kcMasteredCount}`} />
-            <MetricCard
-              label="Rewrite"
-              value={`${Math.round(portfolio.rewriteAcceptanceRate * 100)}%`}
-            />
-          </div>
-        ) : (
-          <div className="mt-5 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500">
-            El portafolio aparecerá cuando el estudiante tenga actividad suficiente.
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Mi dominio del inglés técnico</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Resumen por knowledge component y acceso al panel completo de mastery.
-            </p>
-          </div>
-          <Link
-            to={`/mastery?userId=${user.id}`}
-            className="inline-flex items-center justify-center rounded-xl border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
-          >
-            Abrir Mi dominio
-          </Link>
-        </div>
-
-        <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            {masteryRadar ? (
-              <MasteryRadarChart entries={masteryRadar.kcs.slice(0, 6)} size={280} />
-            ) : (
-              <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
-                El radar aparecerá cuando existan respuestas suficientes de diagnóstico, tareas o repaso.
+                )}
               </div>
-            )}
-          </div>
-          <div className="grid gap-3">
-            <MetricCard
-              label="KCs dominados"
-              value={
-                masteryRadar
-                  ? `${masteryRadar.masteredCount}/${masteryRadar.totalKcs}`
-                  : "Sin datos"
-              }
-            />
-            <MetricCard
-              label="Última actualización"
-              value={
-                masteryRadar?.lastUpdate
-                  ? new Date(masteryRadar.lastUpdate).toLocaleDateString()
-                  : "Sin actividad"
-              }
-            />
-            <MetricCard
-              label="Mejor knowledge component"
-              value={masteryRadar?.kcs[0]?.kcNameEs ?? "Aún no disponible"}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Mi deck de vocabulario</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Resumen del estado actual del repaso espaciado para este estudiante.
-            </p>
-          </div>
-          {user.englishLevel ? (
-            <Link
-              to={`/review/deck?userId=${user.id}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
-            >
-              Ver deck completo
-            </Link>
-          ) : null}
-        </div>
-
-        {reviewStats ? (
-          <div className="mt-5 grid gap-4 md:grid-cols-4">
-            <MetricCard label="Cards totales" value={`${reviewStats.totalCards}`} />
-            <MetricCard label="Para hoy" value={`${reviewStats.dueToday}`} />
-            <MetricCard label="Retention" value={`${reviewStats.retentionRate}%`} />
-            <MetricCard label="Longest streak" value={`${reviewStats.longestStreak} días`} />
-          </div>
-        ) : (
-          <div className="mt-5 rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500">
-            {user.englishLevel
-              ? "No se pudo cargar el deck de vocabulario."
-              : "Toma el diagnóstico primero para generar el deck de vocabulario."}
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Historial de tareas TBLT</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Revisa tareas completadas o pendientes con su puntaje más reciente.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-3">
-          {taskHistory.length > 0 ? (
-            taskHistory.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => navigate(`/tasks/${item.taskId}/result/${item.id}`)}
-                className="flex w-full flex-col gap-3 rounded-xl border border-gray-200 p-4 text-left transition hover:border-blue-200 hover:bg-blue-50/50 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="space-y-2">
-                  <p className="font-medium text-gray-900">{item.taskTitleEs}</p>
-                  <TaskTypeBadge type={item.taskType} />
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                  <span>Puntaje: {item.score ?? "Pendiente"}</span>
-                  <span>
-                    {item.completedAt
-                      ? new Date(item.completedAt).toLocaleDateString()
-                      : "En progreso"}
-                  </span>
-                </div>
-              </button>
-            ))
-          ) : (
-            <div className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500">
-              Aún no hay tareas TBLT registradas para este usuario.
-            </div>
-          )}
-        </div>
-      </section>
-
-      <details className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" open>
-        <summary className="cursor-pointer list-none text-lg font-semibold text-gray-900">
-          Historial de diagnósticos
-        </summary>
-        <div className="mt-5 space-y-3">
-          {history.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              Este usuario todavía no ha completado diagnósticos.
-            </p>
-          ) : (
-            history.map((attempt) => (
-              <div
-                key={attempt.attemptId}
-                className="rounded-xl border border-gray-200 p-4"
-              >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      Placement: {attempt.placedLevel ?? "Pendiente"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Correctas: {attempt.correctCount}
-                    </p>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {attempt.completedAt
-                      ? new Date(attempt.completedAt).toLocaleString()
-                      : "Sin completar"}
-                  </div>
-                </div>
+              <div className="grid gap-3">
+                <MetricCard label="KCs dominados" value={masteryRadar ? `${masteryRadar.masteredCount}/${masteryRadar.totalKcs}` : "Sin datos"} />
+                <MetricCard label="Última actualización" value={masteryRadar?.lastUpdate ? new Date(masteryRadar.lastUpdate).toLocaleDateString() : "Sin actividad"} />
+                <Button asChild variant="outline">
+                  <Link to={`/mastery?userId=${user.id}`}>Abrir Mi dominio</Link>
+                </Button>
               </div>
-            ))
-          )}
-        </div>
-      </details>
-    </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent className="space-y-6" value="portfolio">
+          <Card>
+            <CardHeader>
+              <CardTitle>Portafolio</CardTitle>
+              <CardDescription>Evidencia auto-colectada de tareas, rewrites, vocabulario y pruebas finales.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {portfolio ? (
+                <div className="grid gap-4 md:grid-cols-4">
+                  <MetricCard label="Tareas" value={portfolio.tasksCompleted} />
+                  <MetricCard label="Vocabulario" value={portfolio.vocabularySize} />
+                  <MetricCard label="KCs" value={portfolio.kcMasteredCount} />
+                  <MetricCard label="Rewrite" value={`${Math.round(portfolio.rewriteAcceptanceRate * 100)}%`} />
+                </div>
+              ) : (
+                <EmptyState
+                  description="El portafolio aparecerá cuando el estudiante tenga actividad suficiente."
+                  icon={GraduationCap}
+                  title="Sin portafolio aún"
+                />
+              )}
+              <Button asChild variant="outline">
+                <Link to={`/portfolio?userId=${user.id}`}>Abrir portafolio</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent className="space-y-6" value="tasks">
+          <Card>
+            <CardHeader>
+              <CardTitle>Historial de tareas TBLT</CardTitle>
+              <CardDescription>Revisa tareas completadas o pendientes con su puntaje más reciente.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {taskHistory.length > 0 ? (
+                taskHistory.map((item) => (
+                  <button
+                    className="flex w-full flex-col gap-3 rounded-lg border p-4 text-left sm:flex-row sm:items-center sm:justify-between"
+                    key={item.id}
+                    onClick={() => navigate(`/tasks/${item.taskId}/result/${item.id}`)}
+                    type="button"
+                  >
+                    <div className="space-y-2">
+                      <p className="font-medium">{item.taskTitleEs}</p>
+                      <TaskTypeBadge type={item.taskType} />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                      <span>Puntaje: {item.score ?? "Pendiente"}</span>
+                      <span>{item.completedAt ? new Date(item.completedAt).toLocaleDateString() : "En progreso"}</span>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <EmptyState
+                  description="Aún no hay tareas TBLT registradas para este usuario."
+                  icon={ClipboardCheck}
+                  title="Sin historial de tareas"
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent className="space-y-6" value="reviews">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mi deck de vocabulario</CardTitle>
+              <CardDescription>Resumen del estado actual del repaso espaciado para este estudiante.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {reviewStats ? (
+                <div className="grid gap-4 md:grid-cols-4">
+                  <MetricCard label="Cards totales" value={reviewStats.totalCards} />
+                  <MetricCard label="Para hoy" value={reviewStats.dueToday} />
+                  <MetricCard label="Retention" value={`${reviewStats.retentionRate}%`} />
+                  <MetricCard label="Longest streak" value={`${reviewStats.longestStreak} días`} />
+                </div>
+              ) : (
+                <EmptyState
+                  description={user.englishLevel ? "No se pudo cargar el deck de vocabulario." : "Toma el diagnóstico primero para generar el deck de vocabulario."}
+                  icon={GraduationCap}
+                  title="Sin repaso disponible"
+                />
+              )}
+              {user.englishLevel ? (
+                <Button asChild variant="outline">
+                  <Link to={`/review/deck?userId=${user.id}`}>Ver deck completo</Link>
+                </Button>
+              ) : null}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent className="space-y-6" value="activity">
+          <Card>
+            <CardHeader>
+              <CardTitle>Historial de diagnósticos</CardTitle>
+              <CardDescription>Intentos previos de placement y resultados asociados.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {history.length === 0 ? (
+                <EmptyState
+                  description="Este usuario todavía no ha completado diagnósticos."
+                  icon={ClipboardCheck}
+                  title="Sin intentos previos"
+                />
+              ) : (
+                history.map((attempt) => (
+                  <div className="rounded-lg border p-4" key={attempt.attemptId}>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">Placement: {attempt.placedLevel ?? "Pendiente"}</p>
+                        <p className="text-sm text-muted-foreground">Correctas: {attempt.correctCount}</p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {attempt.completedAt ? new Date(attempt.completedAt).toLocaleString() : "Sin completar"}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </PageShell>
   )
 }
 
@@ -491,23 +390,10 @@ function InfoBlock({
   value: string
 }) {
   return (
-    <div className="flex items-start gap-3">
-      {icon}
-      <div>
-        <p className="text-xs font-medium uppercase text-gray-500">{label}</p>
-        <p className="text-sm text-gray-900">{value}</p>
-      </div>
-    </div>
-  )
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-slate-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 text-lg font-semibold text-slate-900">{value}</p>
+    <div className="rounded-lg border p-4">
+      <div className="mb-2 text-muted-foreground">{icon}</div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm">{value}</p>
     </div>
   )
 }
