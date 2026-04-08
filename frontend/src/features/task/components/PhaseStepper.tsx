@@ -1,3 +1,4 @@
+import { cn } from "../../../lib/utils"
 import type { TaskPhase } from "../../../types/task"
 
 const steps = [
@@ -21,7 +22,7 @@ export function PhaseStepper({ phase }: PhaseStepperProps) {
   const currentIndex = phaseIndexes[phase]
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="rounded-lg border bg-card p-4 shadow-none">
       <ol className="grid gap-3 sm:grid-cols-3">
         {steps.map((step, index) => {
           const active = index === currentIndex
@@ -29,19 +30,30 @@ export function PhaseStepper({ phase }: PhaseStepperProps) {
 
           return (
             <li
+              className={cn(
+                "rounded-lg border px-4 py-3 text-sm",
+                active && "border-foreground bg-accent",
+                completed && "border-border bg-muted/30",
+                !active && !completed && "border-border bg-card"
+              )}
               key={step.key}
-              className={`rounded-xl border px-4 py-3 text-sm transition ${
-                active
-                  ? "border-blue-500 bg-blue-50 text-blue-900"
-                  : completed
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                    : "border-gray-200 bg-gray-50 text-gray-500"
-              }`}
             >
-              <p className="text-xs font-semibold uppercase tracking-wide">
-                Paso {index + 1}
-              </p>
-              <p className="mt-1 font-medium">{step.label}</p>
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex size-8 items-center justify-center rounded-full border text-sm font-semibold tabular-nums",
+                    active && "border-foreground bg-foreground text-background",
+                    completed && "border-border bg-muted text-foreground",
+                    !active && !completed && "border-border text-muted-foreground"
+                  )}
+                >
+                  {index + 1}
+                </span>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Paso</p>
+                  <p className="font-medium">{step.label}</p>
+                </div>
+              </div>
             </li>
           )
         })}
