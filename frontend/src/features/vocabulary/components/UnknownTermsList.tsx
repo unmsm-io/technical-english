@@ -1,3 +1,7 @@
+import { CircleHelp } from "lucide-react"
+import { EmptyState } from "../../../components/ui/empty-state"
+import { Button } from "../../../components/ui/button"
+
 export function UnknownTermsList({
   terms,
   onSelect,
@@ -7,23 +11,26 @@ export function UnknownTermsList({
 }) {
   if (terms.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50 px-4 py-5 text-sm text-emerald-700">
-        No se detectaron terminos desconocidos.
-      </div>
+      <EmptyState
+        className="py-8"
+        description="No se detectaron términos desconocidos en el texto analizado."
+        icon={CircleHelp}
+        title="Todo el vocabulario está reconocido"
+      />
     )
   }
 
   return (
     <div className="flex flex-wrap gap-2">
       {terms.map((term) => (
-        <button
+        <Button
           key={term}
-          type="button"
           onClick={() => onSelect(term)}
-          className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
+          size="sm"
+          variant="outline"
         >
           {term}
-        </button>
+        </Button>
       ))}
     </div>
   )

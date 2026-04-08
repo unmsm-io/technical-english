@@ -1,15 +1,26 @@
-import { Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Languages, Search } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { EmptyState } from "../components/ui/empty-state"
+import { Input } from "../components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
+import { Skeleton } from "../components/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
 import { getVocabulary } from "../features/vocabulary/VocabularyApi"
 import { CefrBadge } from "../features/vocabulary/components/CefrBadge"
 import { LayerBadge } from "../features/vocabulary/components/LayerBadge"
 import type { EnglishLevel } from "../types"
-import type {
-  VocabularyItem,
-  VocabularyLayer,
-  VocabularyPageResponse,
-} from "../types/vocabulary"
+import type { VocabularyItem, VocabularyLayer, VocabularyPageResponse } from "../types/vocabulary"
 
 const layerOptions: Array<{ value: VocabularyLayer; label: string }> = [
   { value: "GSL", label: "GSL" },
@@ -20,17 +31,13 @@ const layerOptions: Array<{ value: VocabularyLayer; label: string }> = [
 
 const levelOptions: EnglishLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
-function useInitialFilters(): {
-  q: string
-  layer: VocabularyLayer | ""
-  cefrLevel: EnglishLevel | ""
-} {
+function useInitialFilters() {
   const location = useLocation()
   const params = new URLSearchParams(location.search)
   return {
-    q: params.get("q") ?? "",
-    layer: (params.get("layer") as VocabularyLayer | null) ?? "",
     cefrLevel: (params.get("cefrLevel") as EnglishLevel | null) ?? "",
+    layer: (params.get("layer") as VocabularyLayer | null) ?? "",
+    q: params.get("q") ?? "",
   }
 }
 
@@ -40,8 +47,8 @@ export function VocabularyPage() {
   const initialFilters = useInitialFilters()
   const [search, setSearch] = useState(initialFilters.q)
   const [debouncedSearch, setDebouncedSearch] = useState(initialFilters.q)
-  const [layer, setLayer] = useState<VocabularyLayer | "">(initialFilters.layer)
-  const [cefrLevel, setCefrLevel] = useState<EnglishLevel | "">(initialFilters.cefrLevel)
+  const [layer, setLayer] = useState<VocabularyLayer | "">(initialFilters.layer as VocabularyLayer | "")
+  const [cefrLevel, setCefrLevel] = useState<EnglishLevel | "">(initialFilters.cefrLevel as EnglishLevel | "")
   const [page, setPage] = useState(0)
   const [data, setData] = useState<VocabularyPageResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -57,32 +64,20 @@ export function VocabularyPage() {
 
   useEffect(() => {
     const params = new URLSearchParams()
-    if (debouncedSearch) {
-      params.set("q", debouncedSearch)
-    }
-    if (layer) {
-      params.set("layer", layer)
-    }
-    if (cefrLevel) {
-      params.set("cefrLevel", cefrLevel)
-    }
-    navigate(
-      {
-        pathname: location.pathname,
-        search: params.toString(),
-      },
-      { replace: true }
-    )
+    if (debouncedSearch) params.set("q", debouncedSearch)
+    if (layer) params.set("layer", layer)
+    if (cefrLevel) params.set("cefrLevel", cefrLevel)
+    navigate({ pathname: location.pathname, search: params.toString() }, { replace: true })
   }, [cefrLevel, debouncedSearch, layer, location.pathname, navigate])
 
   useEffect(() => {
     setLoading(true)
     setError(null)
     getVocabulary({
-      q: debouncedSearch || undefined,
-      layer: layer || undefined,
       cefrLevel: cefrLevel || undefined,
+      layer: layer || undefined,
       page,
+      q: debouncedSearch || undefined,
       size: 10,
     })
       .then(setData)
@@ -93,149 +88,148 @@ export function VocabularyPage() {
   const items: VocabularyItem[] = data?.content ?? []
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Navegador de vocabulario
-        </h1>
-        <p className="text-sm text-gray-600">
-          Explora terminos por capa linguistica, nivel CEFR y frecuencia.
-        </p>
-      </div>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              value={search}
+    <PageShell
+      subtitle="Explora términos por capa lingüística, nivel CEFR y frecuencia."
+      title="Navegador de vocabulario"
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar termino o definicion"
-              className="w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-4 text-sm outline-none ring-0 transition focus:border-blue-500"
+              placeholder="Buscar término o definición"
+              value={search}
             />
-          </label>
-
-          <select
-            value={layer}
-            onChange={(event) => {
-              setLayer(event.target.value as VocabularyLayer | "")
-              setPage(0)
-            }}
-            className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500"
-          >
-            <option value="">Todas las capas</option>
-            {layerOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={cefrLevel}
-            onChange={(event) => {
-              setCefrLevel(event.target.value as EnglishLevel | "")
-              setPage(0)
-            }}
-            className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500"
-          >
-            <option value="">Todos los niveles</option>
-            {levelOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-        {loading ? (
-          <div className="flex items-center justify-center gap-3 px-6 py-16 text-sm text-gray-500">
-            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-            Cargando vocabulario...
           </div>
-        ) : error ? (
-          <div className="px-6 py-16 text-center text-sm text-red-600">{error}</div>
-        ) : items.length === 0 ? (
-          <div className="px-6 py-16 text-center">
-            <p className="text-sm text-gray-600">
-              No se encontraron terminos con los filtros actuales.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
-                  <tr>
-                    <th className="px-5 py-3">Termino</th>
-                    <th className="px-5 py-3">Capa</th>
-                    <th className="px-5 py-3">Nivel</th>
-                    <th className="px-5 py-3">Frecuencia</th>
-                    <th className="px-5 py-3">Definicion</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {items.map((item) => (
-                    <tr
-                      key={item.id}
-                      onClick={() => navigate(`/vocabulary/${item.id}`)}
-                      className="cursor-pointer transition hover:bg-blue-50/50"
-                    >
-                      <td className="px-5 py-4">
-                        <div className="font-medium text-gray-900">{item.term}</div>
-                        <div className="text-xs text-gray-500">{item.partOfSpeech}</div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <LayerBadge layer={item.layer} />
-                      </td>
-                      <td className="px-5 py-4">
-                        <CefrBadge level={item.cefrLevel} />
-                      </td>
-                      <td className="px-5 py-4 text-sm text-gray-700">
-                        {item.frequency.toLocaleString()}
-                      </td>
-                      <td className="px-5 py-4 text-sm text-gray-600">
-                        {item.definition}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+          <Select onValueChange={(value) => {
+            setLayer((value as VocabularyLayer | "all") === "all" ? "" : (value as VocabularyLayer))
+            setPage(0)
+          }} value={layer || "all"}>
+            <SelectTrigger aria-label="Filtrar por capa">
+              <SelectValue placeholder="Todas las capas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las capas</SelectItem>
+              {layerOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select onValueChange={(value) => {
+            setCefrLevel((value as EnglishLevel | "all") === "all" ? "" : (value as EnglishLevel))
+            setPage(0)
+          }} value={cefrLevel || "all"}>
+            <SelectTrigger aria-label="Filtrar por nivel CEFR">
+              <SelectValue placeholder="Todos los niveles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los niveles</SelectItem>
+              {levelOptions.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="space-y-3 p-6">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Skeleton className="h-16 w-full" key={index} />
+              ))}
             </div>
-
-            <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-gray-600">
-                Mostrando {items.length} de {data?.totalElements ?? 0} terminos
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => Math.max(current - 1, 0))}
-                  disabled={data?.first}
-                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Anterior
-                </button>
-                <span className="text-sm text-gray-600">
-                  Pagina {(data?.number ?? 0) + 1} de {data?.totalPages ?? 1}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => current + 1)}
-                  disabled={data?.last}
-                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Siguiente
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+          ) : error ? (
+            <div className="p-6">
+              <Alert variant="destructive">
+                <AlertTitle>Error de carga</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                description="Ajusta la búsqueda o los filtros para probar otra combinación."
+                icon={Languages}
+                title="No se encontraron términos"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Término</TableHead>
+                      <TableHead>Capa</TableHead>
+                      <TableHead>Nivel</TableHead>
+                      <TableHead>Frecuencia</TableHead>
+                      <TableHead>Definición</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow
+                        className="cursor-pointer"
+                        key={item.id}
+                        onClick={() => navigate(`/vocabulary/${item.id}`)}
+                      >
+                        <TableCell>
+                          <div className="font-medium">{item.term}</div>
+                          <div className="text-xs text-muted-foreground">{item.partOfSpeech}</div>
+                        </TableCell>
+                        <TableCell><LayerBadge layer={item.layer} /></TableCell>
+                        <TableCell><CefrBadge level={item.cefrLevel} /></TableCell>
+                        <TableCell className="tabular-nums">{item.frequency.toLocaleString()}</TableCell>
+                        <TableCell className="text-muted-foreground">{item.definition}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            </div>
-          </>
-        )}
-      </section>
-    </div>
+
+              <div className="flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando {items.length} de {data?.totalElements ?? 0} términos
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    disabled={data?.first}
+                    onClick={() => setPage((current) => Math.max(current - 1, 0))}
+                    variant="outline"
+                  >
+                    <ChevronLeft className="size-4" />
+                    Anterior
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Página {(data?.number ?? 0) + 1} de {data?.totalPages ?? 1}
+                  </span>
+                  <Button
+                    disabled={data?.last}
+                    onClick={() => setPage((current) => current + 1)}
+                    variant="outline"
+                  >
+                    Siguiente
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </PageShell>
   )
 }

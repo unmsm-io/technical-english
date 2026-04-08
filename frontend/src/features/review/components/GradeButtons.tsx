@@ -1,16 +1,18 @@
 import { useEffect } from "react"
 import type { ReviewGrade } from "../../../types/review"
+import { Button } from "../../../components/ui/button"
+import { Kbd } from "../../../components/ui/kbd"
 
 const buttons: Array<{
   grade: ReviewGrade
   label: string
   shortcut: string
-  className: string
+  variant: "default" | "destructive" | "outline" | "secondary"
 }> = [
-  { grade: "AGAIN", label: "Again", shortcut: "1", className: "border-red-200 bg-red-50 text-red-700 hover:bg-red-100" },
-  { grade: "HARD", label: "Hard", shortcut: "2", className: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" },
-  { grade: "GOOD", label: "Good", shortcut: "3", className: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
-  { grade: "EASY", label: "Easy", shortcut: "4", className: "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100" },
+  { grade: "AGAIN", label: "Again", shortcut: "1", variant: "destructive" },
+  { grade: "HARD", label: "Hard", shortcut: "2", variant: "secondary" },
+  { grade: "GOOD", label: "Good", shortcut: "3", variant: "default" },
+  { grade: "EASY", label: "Easy", shortcut: "4", variant: "outline" },
 ]
 
 interface GradeButtonsProps {
@@ -47,16 +49,19 @@ export function GradeButtons({ disabled = false, canGrade, onFlip, onGrade }: Gr
   return (
     <div className="grid gap-3 sm:grid-cols-4">
       {buttons.map((button) => (
-        <button
+        <Button
           key={button.grade}
-          type="button"
           disabled={disabled || !canGrade}
           onClick={() => onGrade(button.grade)}
-          className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${button.className}`}
+          className="h-auto flex-col items-start rounded-lg px-4 py-3"
+          variant={button.variant}
         >
           <span className="block">{button.label}</span>
-          <span className="mt-1 block text-xs opacity-70">Tecla {button.shortcut}</span>
-        </button>
+          <span className="mt-1 flex items-center gap-1 text-xs opacity-80">
+            <span>Tecla</span>
+            <Kbd>{button.shortcut}</Kbd>
+          </span>
+        </Button>
       ))}
     </div>
   )

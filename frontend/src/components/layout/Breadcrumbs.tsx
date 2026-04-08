@@ -1,5 +1,12 @@
-import { ChevronRight } from "lucide-react"
 import { Link, useLocation } from "react-router"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../ui/breadcrumb"
 
 const segmentLabels: Record<string, string> = {
   users: "Usuarios",
@@ -26,9 +33,10 @@ const segmentLabels: Record<string, string> = {
   calibration: "Calibración",
   "generated-items": "Items generados",
   "verification-metrics": "Métricas",
-  "cohort-analytics": "Cohort Analytics",
-  pilot: "Pilot Studies",
+  "cohort-analytics": "Cohort analytics",
+  pilot: "Estudios piloto",
   cohorts: "Cohortes",
+  results: "Resultados",
 }
 
 export function Breadcrumbs() {
@@ -49,29 +57,31 @@ export function Breadcrumbs() {
   })
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
-      <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-        <li>
-          <Link to="/" className="transition hover:text-gray-900">
-            Inicio
-          </Link>
-        </li>
-        {breadcrumbs.map((item, index) => {
-          const isLast = index === breadcrumbs.length - 1
-          return (
-            <li key={item.href} className="flex items-center gap-2">
-              <ChevronRight className="h-4 w-4 text-gray-400" />
-              {isLast ? (
-                <span className="font-medium text-gray-900">{item.label}</span>
-              ) : (
-                <Link to={item.href} className="transition hover:text-gray-900">
-                  {item.label}
-                </Link>
-              )}
-            </li>
-          )
-        })}
-      </ol>
-    </nav>
+    <div className="mx-auto max-w-screen-xl px-4 pt-6 sm:px-6 lg:px-8">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/">Inicio</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          {breadcrumbs.map((item, index) => {
+            const isLast = index === breadcrumbs.length - 1
+            return (
+              <BreadcrumbItem key={item.href}>
+                <BreadcrumbSeparator />
+                {isLast ? (
+                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link to={item.href}>{item.label}</Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            )
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </div>
   )
 }

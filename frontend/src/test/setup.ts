@@ -7,18 +7,27 @@ const windowInstance = new Window({
 })
 
 Object.assign(globalThis, {
+  DocumentFragment: windowInstance.DocumentFragment,
   window: windowInstance,
   document: windowInstance.document,
   navigator: windowInstance.navigator,
+  Node: windowInstance.Node,
+  Element: windowInstance.Element,
   HTMLElement: windowInstance.HTMLElement,
   HTMLInputElement: windowInstance.HTMLInputElement,
   HTMLButtonElement: windowInstance.HTMLButtonElement,
+  MutationObserver: windowInstance.MutationObserver,
   Event: windowInstance.Event,
+  CustomEvent: windowInstance.CustomEvent,
   MouseEvent: windowInstance.MouseEvent,
+  getComputedStyle: windowInstance.getComputedStyle.bind(windowInstance),
+  TypeError,
   SyntaxError,
 })
 
 Object.assign(windowInstance, {
+  CustomEvent: windowInstance.CustomEvent,
+  TypeError,
   SyntaxError,
 })
 
