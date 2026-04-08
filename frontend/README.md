@@ -90,6 +90,38 @@ bun test
 - `src/components/layout/Breadcrumbs.tsx`
   Añade labels para rutas de mastery y cohorte.
 
+## Rutas nuevas de Sprint 7
+
+- `/summative`
+  Listado de pruebas finales con selector de usuario y acceso al historial reciente.
+- `/summative/:id/run`
+  Flujo de lectura, producción y comprensión con stepper persistente.
+- `/summative/:id/result/:attemptId`
+  Resultado final con breakdown por fase y revisión de respuestas.
+- `/portfolio`
+  Portafolio del estudiante con selector de usuario, timeline, charts SVG y exportación a markdown.
+- `/admin/pilot`
+  Panel admin de cohortes piloto, creación local y navegación a resultados.
+- `/admin/pilot/cohorts/:id`
+  Detalle operativo de la cohorte con inscripción, phase advance y tabla de enrollments.
+- `/admin/pilot/cohorts/:id/results`
+  Reporte agregado del piloto con métricas y chart de Cohen's d.
+
+## Integraciones nuevas de Sprint 7
+
+- `src/features/summative/`
+  API, store Zustand y componentes del assessment sumativo.
+- `src/features/portfolio/`
+  API y componentes del portafolio longitudinal.
+- `src/features/pilot/`
+  API y componentes admin para cohortes piloto.
+- `src/pages/Dashboard.tsx`
+  Añade widget de portafolio y widget admin "Pilot studies activos".
+- `src/components/layout/Header.tsx`
+  Añade navegación "Portafolio", "Pruebas finales" y la entrada admin "Pilot Studies".
+- `src/components/layout/Breadcrumbs.tsx`
+  Añade labels para rutas de summative, portfolio y pilot.
+
 ## Integraciones nuevas de Sprint 5
 
 - `src/features/admin/AdminApi.ts`
@@ -136,6 +168,10 @@ bun test
 - `src/pages/MasteryPage.test.tsx`
 - `src/pages/MasteryKcDetailPage.test.tsx`
 - `src/pages/AdminCohortAnalyticsPage.test.tsx`
+- `src/pages/SummativeRunnerPage.test.tsx`
+- `src/pages/PortfolioPage.test.tsx`
+- `src/pages/AdminPilotPage.test.tsx`
+- `src/pages/AdminPilotResultsPage.test.tsx`
 - `src/features/mastery/MasteryApi.test.ts`
 - `src/features/mastery/components/MasteryRadarChart.test.tsx`
 - `src/features/mastery/components/FlowStateCard.test.tsx`
