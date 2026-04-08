@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { getUsers } from "../api/users"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Badge } from "../components/ui/badge"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Textarea } from "../components/ui/textarea"
 import { AdminApi } from "../features/admin/AdminApi"
 import { AgentScoreCard } from "../features/admin/components/AgentScoreCard"
 import { VerificationScoreBadge } from "../features/admin/components/VerificationScoreBadge"
@@ -29,11 +35,18 @@ export function AdminGeneratedItemDetailPage() {
   }, [id])
 
   if (loading) {
-    return <div className="rounded-2xl border border-gray-200 bg-white p-8 text-sm text-gray-500 shadow-sm">Cargando detalle...</div>
+    return <PageShell subtitle="Cargando detalle del item." title="Detalle"><div className="text-sm text-muted-foreground">Cargando...</div></PageShell>
   }
 
   if (error || !item) {
-    return <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-sm text-rose-700 shadow-sm">{error ?? "Item no encontrado."}</div>
+    return (
+      <PageShell subtitle="No fue posible recuperar el item." title="Detalle">
+        <Alert variant="destructive">
+          <AlertTitle>Error de carga</AlertTitle>
+          <AlertDescription>{error ?? "Item no encontrado."}</AlertDescription>
+        </Alert>
+      </PageShell>
+    )
   }
 
   const approve = async () => {
@@ -69,125 +82,76 @@ export function AdminGeneratedItemDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Item #{item.id}</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {item.targetCefrLevel} · {item.targetSkill} · {item.bloomLevel}
-            </p>
-          </div>
-          <VerificationScoreBadge score={item.overallScore} />
-        </div>
-        <p className="text-base leading-7 text-gray-800">{item.questionText ?? "Sin pregunta."}</p>
-        <div className="grid gap-3">
-          {item.options.map((option, index) => (
-            <div
-              key={`${item.id}-${index}`}
-              className={`rounded-xl border px-4 py-3 text-sm ${
-                index === item.correctAnswerIdx
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                  : "border-gray-200 bg-gray-50 text-gray-700"
-              }`}
-            >
-              <span className="font-semibold">{String.fromCharCode(65 + index)}.</span>{" "}
-              {option}
-            </div>
-          ))}
-        </div>
-        <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
-          <p className="font-semibold text-slate-900">Explicación</p>
-          <p className="mt-2 leading-6">{item.explanation ?? "Sin explicación."}</p>
-        </div>
-        {item.protectedTokens.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {item.protectedTokens.map((token) => (
-              <span
-                key={token}
-                className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600"
-              >
-                {token}
-              </span>
+    <PageShell
+      actions={<VerificationScoreBadge score={item.overallScore} />}
+      subtitle={`${item.targetCefrLevel} · ${item.targetSkill} · ${item.bloomLevel}`}
+      title={`Item #${item.id}`}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Pregunta</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-base leading-7">{item.questionText ?? "Sin pregunta."}</p>
+          <div className="grid gap-3">
+            {item.options.map((option, index) => (
+              <div className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm" key={`${item.id}-${index}`}>
+                <span className="font-semibold">{String.fromCharCode(65 + index)}.</span> {option}
+              </div>
             ))}
           </div>
-        ) : null}
-      </div>
+          <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm">
+            <p className="font-semibold">Explicación</p>
+            <p className="mt-2 leading-6 text-muted-foreground">{item.explanation ?? "Sin explicación."}</p>
+          </div>
+          {item.protectedTokens.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {item.protectedTokens.map((token) => (
+                <Badge key={token} variant="outline">{token}</Badge>
+              ))}
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <AgentScoreCard
-          title="Solvability"
-          score={item.solvabilityScore}
-          notes={item.solvabilityNotes}
-          passed={(item.solvabilityScore ?? 0) >= 0.5}
-        />
-        <AgentScoreCard
-          title="Factual"
-          score={item.factualScore}
-          notes={item.factualNotes}
-          passed={(item.factualScore ?? 0) >= 0.7}
-        />
-        <AgentScoreCard
-          title="Reasoning"
-          score={item.reasoningScore}
-          notes={item.reasoningNotes}
-          passed={(item.reasoningScore ?? 0) >= 0.5}
-        />
-        <AgentScoreCard
-          title="Token Preservation"
-          score={item.tokenPreservationOk ? 1 : 0}
-          notes={item.tokenPreservationNotes}
-          passed={Boolean(item.tokenPreservationOk)}
-        />
+        <AgentScoreCard notes={item.solvabilityNotes} passed={(item.solvabilityScore ?? 0) >= 0.5} score={item.solvabilityScore} title="Solvability" />
+        <AgentScoreCard notes={item.factualNotes} passed={(item.factualScore ?? 0) >= 0.7} score={item.factualScore} title="Factual" />
+        <AgentScoreCard notes={item.reasoningNotes} passed={(item.reasoningScore ?? 0) >= 0.5} score={item.reasoningScore} title="Reasoning" />
+        <AgentScoreCard notes={item.tokenPreservationNotes} passed={Boolean(item.tokenPreservationOk)} score={item.tokenPreservationOk ? 1 : 0} title="Token Preservation" />
       </div>
 
       {item.state === "PENDING_REVIEW" ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Revisión administrativa</h2>
-          <div className="mt-4 flex flex-col gap-3 md:flex-row">
-            <button
-              type="button"
-              onClick={approve}
-              disabled={actionLoading}
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:opacity-60"
-            >
-              Aprobar
-            </button>
-            <div className="flex-1">
-              <textarea
-                value={rejectReason}
-                onChange={(event) => setRejectReason(event.target.value)}
-                placeholder="Razón de rechazo"
-                className="min-h-24 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm"
-              />
+        <Card>
+          <CardHeader>
+            <CardTitle>Revisión administrativa</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-3">
+              <Button disabled={actionLoading} onClick={approve}>Aprobar</Button>
+              <Button disabled={actionLoading} onClick={reject} variant="outline">Rechazar</Button>
             </div>
-            <button
-              type="button"
-              onClick={reject}
-              disabled={actionLoading}
-              className="rounded-xl border border-rose-200 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:opacity-60"
-            >
-              Rechazar
-            </button>
-          </div>
-          {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
-        </div>
+            <Textarea
+              onChange={(event) => setRejectReason(event.target.value)}
+              placeholder="Razón de rechazo"
+              value={rejectReason}
+            />
+          </CardContent>
+        </Card>
       ) : null}
 
       {item.state === "APPROVED" && item.promotedToDiagnosticItemId ? (
-        <Link
-          to="/admin/generated-items"
-          className="inline-flex rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
-        >
-          DiagnosticItem promovido #{item.promotedToDiagnosticItemId}
-        </Link>
+        <Button asChild variant="outline">
+          <Link to="/admin/generated-items">DiagnosticItem promovido #{item.promotedToDiagnosticItemId}</Link>
+        </Button>
       ) : null}
 
       {item.state === "REJECTED" && item.rejectionReason ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700 shadow-sm">
-          Motivo de rechazo: {item.rejectionReason}
-        </div>
+        <Alert variant="destructive">
+          <AlertTitle>Motivo de rechazo</AlertTitle>
+          <AlertDescription>{item.rejectionReason}</AlertDescription>
+        </Alert>
       ) : null}
-    </div>
+    </PageShell>
   )
 }
