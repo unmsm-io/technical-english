@@ -2,6 +2,7 @@ package pe.edu.unmsm.fisi.techeng.task.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -110,6 +111,61 @@ public class TaskAttemptService {
         );
     }
 
+    public TaskFeedbackResponse submitRewrite(Long attemptId, String rewriteAnswerEn) {
+        TaskAttempt attempt = getAttemptEntity(attemptId);
+        if (attempt.getScore() == null || attempt.getSubmittedAt() == null || attempt.getUserAnswerEn() == null) {
+            throw new BusinessRuleException("Primero debes enviar la respuesta original antes de reescribir");
+        }
+        if (attempt.getRewriteAnswerEn() != null) {
+            throw new BusinessRuleException("La reescritura ya fue enviada para este intento");
+        }
+
+        String normalizedRewrite = rewriteAnswerEn.trim();
+        if (normalizedRewrite.equals(attempt.getUserAnswerEn().trim())) {
+            throw new BusinessRuleException("La reescritura debe ser distinta a la respuesta original");
+        }
+
+        Task task = taskRepository.findByIdAndActiveTrue(attempt.getTaskId())
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + attempt.getTaskId()));
+        User user = userRepository.findById(attempt.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + attempt.getUserId()));
+
+        String cefrLevel = user.getEnglishLevel() == null || user.getEnglishLevel().isBlank()
+                ? CefrLevel.A2.name()
+                : user.getEnglishLevel();
+
+        TaskFeedbackPayload payload = taskFeedbackService.generateFeedback(task, normalizedRewrite, cefrLevel);
+        boolean rewriteAccepted = payload.correctness() > attempt.getScore();
+
+        attempt.setRewriteAnswerEn(normalizedRewrite);
+        attempt.setRewriteSubmittedAt(Instant.now());
+        attempt.setRewriteScore(payload.correctness());
+        attempt.setRewriteFeedbackJson(writeJson(payload));
+        attempt.setRewriteAccepted(rewriteAccepted);
+        TaskAttempt savedAttempt = taskAttemptRepository.save(attempt);
+
+        if (payload.correctness() >= 70) {
+            try {
+                masteryService.recordResponse(user.getId(), KcItemType.TASK, task.getId(), true);
+            } catch (Exception exception) {
+                log.warn("Mastery update failed for task rewrite {}", savedAttempt.getId(), exception);
+            }
+        }
+
+        return new TaskFeedbackResponse(
+                savedAttempt.getId(),
+                task.getId(),
+                task.getTaskType(),
+                savedAttempt.getRewriteScore(),
+                savedAttempt.getRewriteAnswerEn(),
+                task.getExpectedAnswerEn(),
+                task.getPostTaskExplanationEs(),
+                payload,
+                payload.languageFocusComments(),
+                payload.improvedAnswer()
+        );
+    }
+
     public TaskAttemptResponse complete(Long attemptId) {
         TaskAttempt attempt = getAttemptEntity(attemptId);
         if (attempt.getPhase() != TaskPhase.POST_TASK) {
@@ -158,6 +214,11 @@ public class TaskAttemptService {
                 readFeedback(attempt.getLlmFeedbackJson()),
                 attempt.getLlmFeedbackCefr(),
                 attempt.getScore(),
+                attempt.getRewriteAnswerEn(),
+                readFeedback(attempt.getRewriteFeedbackJson()),
+                attempt.getRewriteScore(),
+                attempt.getRewriteAccepted(),
+                attempt.getRewriteSubmittedAt(),
                 attempt.getStartedAt(),
                 attempt.getSubmittedAt(),
                 attempt.getCompletedAt()

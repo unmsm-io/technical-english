@@ -58,6 +58,14 @@ export const TaskApi = {
     return data.data
   },
 
+  async submitRewrite(attemptId: number, rewriteAnswerEn: string) {
+    const { data } = await api.post<ApiResponse<TaskFeedback>>(
+      `/task-attempts/${attemptId}/rewrite`,
+      { rewriteAnswerEn }
+    )
+    return data.data
+  },
+
   async complete(attemptId: number) {
     const { data } = await api.patch<ApiResponse<TaskAttempt>>(
       `/task-attempts/${attemptId}/complete`

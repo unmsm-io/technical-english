@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import pe.edu.unmsm.fisi.techeng.shared.entity.BaseEntity;
 
@@ -44,6 +45,18 @@ public class TaskAttempt extends BaseEntity {
     private String llmFeedbackCefr;
 
     private Integer score;
+
+    @Column(columnDefinition = "TEXT")
+    private String rewriteAnswerEn;
+
+    private Instant rewriteSubmittedAt;
+
+    private Integer rewriteScore;
+
+    @Column(columnDefinition = "TEXT")
+    private String rewriteFeedbackJson;
+
+    private Boolean rewriteAccepted;
 
     @Column(nullable = false)
     private LocalDateTime startedAt;
@@ -130,5 +143,45 @@ public class TaskAttempt extends BaseEntity {
 
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public String getRewriteAnswerEn() {
+        return rewriteAnswerEn;
+    }
+
+    public void setRewriteAnswerEn(String rewriteAnswerEn) {
+        this.rewriteAnswerEn = rewriteAnswerEn;
+    }
+
+    public Instant getRewriteSubmittedAt() {
+        return rewriteSubmittedAt;
+    }
+
+    public void setRewriteSubmittedAt(Instant rewriteSubmittedAt) {
+        this.rewriteSubmittedAt = rewriteSubmittedAt;
+    }
+
+    public Integer getRewriteScore() {
+        return rewriteScore;
+    }
+
+    public void setRewriteScore(Integer rewriteScore) {
+        this.rewriteScore = rewriteScore;
+    }
+
+    public String getRewriteFeedbackJson() {
+        return rewriteFeedbackJson;
+    }
+
+    public void setRewriteFeedbackJson(String rewriteFeedbackJson) {
+        this.rewriteFeedbackJson = rewriteFeedbackJson;
+    }
+
+    public Boolean getRewriteAccepted() {
+        return rewriteAccepted;
+    }
+
+    public void setRewriteAccepted(Boolean rewriteAccepted) {
+        this.rewriteAccepted = rewriteAccepted;
     }
 }

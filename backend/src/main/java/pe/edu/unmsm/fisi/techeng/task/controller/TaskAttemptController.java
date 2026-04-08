@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.edu.unmsm.fisi.techeng.task.dto.AdvancePhaseRequest;
+import pe.edu.unmsm.fisi.techeng.task.dto.SubmitRewriteRequest;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskAttemptHistoryResponse;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskAttemptResponse;
 import pe.edu.unmsm.fisi.techeng.task.dto.TaskFeedbackResponse;
@@ -65,6 +66,15 @@ public class TaskAttemptController {
             @Valid @RequestBody SubmitTaskRequest request
     ) {
         return ResponseEntity.ok(pe.edu.unmsm.fisi.techeng.shared.dto.ApiResponse.ok(taskAttemptService.submit(id, request.userAnswerEn())));
+    }
+
+    @PostMapping("/{id}/rewrite")
+    @Operation(summary = "Enviar reescritura de tarea", description = "Evalua una segunda version del estudiante y registra si mejoro respecto al intento original.")
+    public ResponseEntity<pe.edu.unmsm.fisi.techeng.shared.dto.ApiResponse<TaskFeedbackResponse>> submitRewrite(
+            @PathVariable Long id,
+            @Valid @RequestBody SubmitRewriteRequest request
+    ) {
+        return ResponseEntity.ok(pe.edu.unmsm.fisi.techeng.shared.dto.ApiResponse.ok(taskAttemptService.submitRewrite(id, request.rewriteAnswerEn())));
     }
 
     @PatchMapping("/{id}/complete")

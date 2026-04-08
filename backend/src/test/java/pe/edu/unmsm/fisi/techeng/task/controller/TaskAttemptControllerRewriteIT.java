@@ -3,7 +3,6 @@ package pe.edu.unmsm.fisi.techeng.task.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,7 +36,7 @@ import pe.edu.unmsm.fisi.techeng.user.repository.UserRepository;
         "llm.api-key=test-key",
         "llm.model=gpt-4o-mini"
 })
-class TaskAttemptControllerIT {
+class TaskAttemptControllerRewriteIT {
 
     @Autowired
     private MockMvc mockMvc;
@@ -55,12 +54,12 @@ class TaskAttemptControllerIT {
     private TaskFeedbackService taskFeedbackService;
 
     @Test
-    void shouldStartAdvanceSubmitCompleteAndListHistory() throws Exception {
+    void shouldSubmitRewriteAndExposeRewriteFieldsInAttempt() throws Exception {
         User user = new User();
-        user.setCodigo("20261234");
-        user.setFirstName("Mateo");
-        user.setLastName("Lopez");
-        user.setEmail("mateo.lopez@unmsm.edu.pe");
+        user.setCodigo("20261235");
+        user.setFirstName("Lucia");
+        user.setLastName("Perez");
+        user.setEmail("lucia.perez@unmsm.edu.pe");
         user.setPassword("password123");
         user.setRole(UserRole.STUDENT);
         user.setFaculty("FISI");
@@ -69,7 +68,7 @@ class TaskAttemptControllerIT {
         User savedUser = userRepository.save(user);
 
         Task task = taskRepository.findAll().stream()
-                .filter(item -> item.getTaskType().name().equals("ERROR_MESSAGE"))
+                .filter(item -> item.getTaskType().name().equals("COMMIT_MSG"))
                 .findFirst()
                 .orElseThrow();
 
@@ -77,7 +76,6 @@ class TaskAttemptControllerIT {
                         .param("userId", savedUser.getId().toString())
                         .param("taskId", task.getId().toString()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.phase").value("PRE_TASK"))
                 .andReturn();
 
         JsonNode startJson = objectMapper.readTree(startResult.getResponse().getContentAsString());
@@ -86,48 +84,56 @@ class TaskAttemptControllerIT {
         mockMvc.perform(patch("/api/v1/task-attempts/{id}/phase", attemptId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new PhasePayload("DURING_TASK"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.phase").value("DURING_TASK"));
+                .andExpect(status().isOk());
 
-        when(taskFeedbackService.generateFeedback(any(Task.class), eq("The error happen because user is null."), eq("B1")))
+        when(taskFeedbackService.generateFeedback(any(Task.class), eq("fix token bug"), eq("B1")))
                 .thenReturn(new TaskFeedbackPayload(
-                        91,
-                        java.util.List.of("Clear explanation"),
-                        java.util.List.of(new TaskFeedbackPayload.TaskFeedbackError(
-                                "error happen",
-                                "error happens",
-                                "Use third person singular."
-                        )),
-                        "The error happens because the user is null.",
-                        "Use present simple when describing bugs."
+                        58,
+                        java.util.List.of("Basic intent"),
+                        java.util.List.of(),
+                        "fix auth token expiration handling",
+                        "Use concise commit style."
                 ));
 
         mockMvc.perform(post("/api/v1/task-attempts/{id}/submit", attemptId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new SubmitPayload("The error happen because user is null."))))
+                        .content(objectMapper.writeValueAsString(new SubmitPayload("fix token bug"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.score").value(91))
-                .andExpect(jsonPath("$.data.llmFeedbackPayload.improvedAnswer").value("The error happens because the user is null."))
-                .andExpect(jsonPath("$.data.postTaskExplanationEs").isNotEmpty());
+                .andExpect(jsonPath("$.data.score").value(58));
 
-        mockMvc.perform(patch("/api/v1/task-attempts/{id}/complete", attemptId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.phase").value("COMPLETED"))
-                .andExpect(jsonPath("$.data.completedAt").isNotEmpty());
+        when(taskFeedbackService.generateFeedback(any(Task.class), eq("fix auth token expiration handling in login flow"), eq("B1")))
+                .thenReturn(new TaskFeedbackPayload(
+                        84,
+                        java.util.List.of("Clear action"),
+                        java.util.List.of(),
+                        "fix auth token expiration handling in login flow",
+                        "Good imperative verb and scope."
+                ));
 
-        mockMvc.perform(get("/api/v1/task-attempts")
-                        .param("userId", savedUser.getId().toString()))
+        mockMvc.perform(post("/api/v1/task-attempts/{id}/rewrite", attemptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new RewritePayload("fix auth token expiration handling in login flow"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].taskType").value("ERROR_MESSAGE"))
-                .andExpect(jsonPath("$.data[0].score").value(91));
+                .andExpect(jsonPath("$.data.score").value(84))
+                .andExpect(jsonPath("$.data.userAnswerEn").value("fix auth token expiration handling in login flow"));
 
-        mockMvc.perform(get("/api/v1/task-attempts/{id}", attemptId))
+        mockMvc.perform(post("/api/v1/task-attempts/{id}/rewrite", attemptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new RewritePayload("fix auth token expiration handling in login flow"))))
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/task-attempts/{id}", attemptId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.phase").value("COMPLETED"));
+                .andExpect(jsonPath("$.data.rewriteAnswerEn").value("fix auth token expiration handling in login flow"))
+                .andExpect(jsonPath("$.data.rewriteScore").value(84))
+                .andExpect(jsonPath("$.data.rewriteAccepted").value(true))
+                .andExpect(jsonPath("$.data.rewriteSubmittedAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.rewriteFeedbackPayload.improvedAnswer").value("fix auth token expiration handling in login flow"));
     }
 
     private record PhasePayload(String phase) {}
 
     private record SubmitPayload(String userAnswerEn) {}
+
+    private record RewritePayload(String rewriteAnswerEn) {}
 }

@@ -64,6 +64,29 @@ function buildFeedback(task: TaskDetail, attempt: TaskAttempt): TaskFeedback | n
   }
 }
 
+function buildRewriteFeedback(task: TaskDetail, attempt: TaskAttempt): TaskFeedback | null {
+  if (
+    !attempt.rewriteFeedbackPayload ||
+    attempt.rewriteScore === null ||
+    !attempt.rewriteAnswerEn
+  ) {
+    return null
+  }
+
+  return {
+    attemptId: attempt.id,
+    taskId: task.id,
+    taskType: task.taskType,
+    score: attempt.rewriteScore,
+    userAnswerEn: attempt.rewriteAnswerEn,
+    expectedAnswerEn: task.expectedAnswerEn,
+    postTaskExplanationEs: task.postTaskExplanationEs,
+    llmFeedbackPayload: attempt.rewriteFeedbackPayload,
+    languageFocusComments: attempt.rewriteFeedbackPayload.languageFocusComments,
+    improvedAnswer: attempt.rewriteFeedbackPayload.improvedAnswer,
+  }
+}
+
 export function TaskResultPage() {
   const { id, attemptId } = useParams()
   const navigate = useNavigate()
@@ -73,6 +96,10 @@ export function TaskResultPage() {
   const [attempt, setAttempt] = useState<TaskAttempt | null>(null)
   const [loading, setLoading] = useState(true)
   const [completing, setCompleting] = useState(false)
+  const [rewriteAnswer, setRewriteAnswer] = useState("")
+  const [rewriteSubmitting, setRewriteSubmitting] = useState(false)
+  const [rewriteError, setRewriteError] = useState<string | null>(null)
+  const [rewriteFeedback, setRewriteFeedback] = useState<TaskFeedback | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const taskId = Number(id)
@@ -90,6 +117,7 @@ export function TaskResultPage() {
       .then(([taskData, attemptData]) => {
         setTask(taskData)
         setAttempt(attemptData)
+        setRewriteAnswer(attemptData.rewriteAnswerEn ?? "")
       })
       .catch(() => setError("No se pudo cargar el resultado de la tarea."))
       .finally(() => setLoading(false))
@@ -106,6 +134,14 @@ export function TaskResultPage() {
 
     return buildFeedback(task, attempt)
   }, [attempt, stateFeedback, task])
+
+  const persistedRewriteFeedback = useMemo(() => {
+    if (!task || !attempt) {
+      return null
+    }
+
+    return buildRewriteFeedback(task, attempt)
+  }, [attempt, task])
 
   if (!taskId || !attemptIdValue) {
     return <Navigate to="/tasks" replace />
@@ -157,6 +193,33 @@ export function TaskResultPage() {
     }
   }
 
+  const handleRewriteSubmit = async () => {
+    if (!attempt || !task) {
+      return
+    }
+
+    setRewriteSubmitting(true)
+    setRewriteError(null)
+
+    try {
+      const submittedRewrite = await TaskApi.submitRewrite(attempt.id, rewriteAnswer)
+      const updatedAttempt = await TaskApi.getAttempt(attempt.id)
+      setRewriteFeedback(submittedRewrite)
+      setAttempt(updatedAttempt)
+      setRewriteAnswer(updatedAttempt.rewriteAnswerEn ?? rewriteAnswer)
+    } catch {
+      setRewriteError("No se pudo enviar la reescritura. Intenta nuevamente.")
+    } finally {
+      setRewriteSubmitting(false)
+    }
+  }
+
+  const canRewrite =
+    attempt.userAnswerEn !== null &&
+    attempt.score !== null &&
+    attempt.rewriteAnswerEn === null &&
+    !rewriteSubmitting
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <TaskResultBreadcrumb taskId={task.id} title={task.titleEs} />
@@ -195,6 +258,63 @@ export function TaskResultPage() {
           {task.postTaskExplanationEs}
         </p>
       </section>
+
+      {attempt.rewriteAnswerEn === null ? (
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold text-gray-900">Reescribir</h2>
+            <p className="text-sm leading-6 text-gray-600">
+              Envía una nueva versión en inglés para medir si mejoraste respecto a tu
+              primera respuesta.
+            </p>
+          </div>
+          <textarea
+            value={rewriteAnswer}
+            onChange={(event) => setRewriteAnswer(event.target.value)}
+            placeholder="Escribe aquí tu nueva versión en inglés."
+            className="mt-4 min-h-36 w-full rounded-2xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+          />
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={handleRewriteSubmit}
+              disabled={!canRewrite || rewriteAnswer.trim().length === 0}
+              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {rewriteSubmitting ? "Enviando..." : "Enviar reescritura"}
+            </button>
+            <p className="text-sm text-gray-500">
+              Solo puedes enviar una reescritura por intento.
+            </p>
+          </div>
+          {rewriteError ? <p className="mt-3 text-sm text-red-600">{rewriteError}</p> : null}
+        </section>
+      ) : null}
+
+      {rewriteFeedback || persistedRewriteFeedback ? (
+        <section className="space-y-4 rounded-2xl border border-blue-200 bg-blue-50/40 p-6 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Resultado de la reescritura</h2>
+              <p className="text-sm text-gray-600">
+                {attempt.rewriteAccepted
+                  ? "La nueva versión mejoró el puntaje original."
+                  : "La nueva versión quedó registrada, pero no superó el puntaje original."}
+              </p>
+            </div>
+            <span
+              className={`inline-flex w-fit rounded-full px-4 py-2 text-sm font-semibold ${
+                attempt.rewriteAccepted
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-200 text-slate-700"
+              }`}
+            >
+              {attempt.rewriteAccepted ? "Mejora aceptada" : "Sin mejora"}
+            </span>
+          </div>
+          <FeedbackPanel feedback={rewriteFeedback ?? persistedRewriteFeedback!} />
+        </section>
+      ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
