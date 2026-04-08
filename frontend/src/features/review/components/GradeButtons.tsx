@@ -1,7 +1,8 @@
 import { useEffect } from "react"
-import type { ReviewGrade } from "../../../types/review"
 import { Button } from "../../../components/ui/button"
 import { Kbd } from "../../../components/ui/kbd"
+import { cn } from "../../../lib/utils"
+import type { ReviewGrade } from "../../../types/review"
 
 const buttons: Array<{
   grade: ReviewGrade
@@ -16,13 +17,13 @@ const buttons: Array<{
 ]
 
 interface GradeButtonsProps {
-  disabled?: boolean
   canGrade: boolean
+  disabled?: boolean
   onFlip: () => void
   onGrade: (grade: ReviewGrade) => void
 }
 
-export function GradeButtons({ disabled = false, canGrade, onFlip, onGrade }: GradeButtonsProps) {
+export function GradeButtons({ canGrade, disabled = false, onFlip, onGrade }: GradeButtonsProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (disabled) {
@@ -47,17 +48,20 @@ export function GradeButtons({ disabled = false, canGrade, onFlip, onGrade }: Gr
   }, [canGrade, disabled, onFlip, onGrade])
 
   return (
-    <div className="grid gap-3 sm:grid-cols-4">
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
       {buttons.map((button) => (
         <Button
-          key={button.grade}
+          className={cn(
+            "h-auto min-h-16 flex-col items-start rounded-xl px-4 py-3 text-left",
+            !canGrade && "opacity-80"
+          )}
           disabled={disabled || !canGrade}
+          key={button.grade}
           onClick={() => onGrade(button.grade)}
-          className="h-auto flex-col items-start rounded-lg px-4 py-3"
           variant={button.variant}
         >
-          <span className="block">{button.label}</span>
-          <span className="mt-1 flex items-center gap-1 text-xs opacity-80">
+          <span className="text-sm font-medium">{button.label}</span>
+          <span className="mt-1 flex items-center gap-1.5 text-xs opacity-80">
             <span>Tecla</span>
             <Kbd>{button.shortcut}</Kbd>
           </span>

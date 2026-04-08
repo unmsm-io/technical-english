@@ -1,12 +1,89 @@
-import { Loader2 } from "lucide-react"
+import { Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router"
 import { getUsers } from "../api/users"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Badge } from "../components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { EmptyState } from "../components/ui/empty-state"
+import { MetricCard } from "../components/ui/metric-card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
+import { Skeleton } from "../components/ui/skeleton"
 import { ReviewApi } from "../features/review/ReviewApi"
 import { StabilityHeatmap } from "../features/review/components/StabilityHeatmap"
 import { StreakIndicator } from "../features/review/components/StreakIndicator"
 import type { User } from "../types"
 import type { ReviewCard, ReviewStats } from "../types/review"
+
+function WeeklyRetentionChart({ stats }: { stats: ReviewStats }) {
+  const points = stats.weeklyRetention
+  const width = 520
+  const height = 220
+  const padding = 28
+  const maxValue = Math.max(100, ...points.map((point) => point.retentionRate))
+
+  if (points.length === 0) {
+    return (
+      <EmptyState
+        description="El sistema necesita más semanas de repaso registradas para construir la curva."
+        icon={Search}
+        title="Sin datos semanales"
+      />
+    )
+  }
+
+  const path = points
+    .map((point, index) => {
+      const x = padding + (index * (width - padding * 2)) / Math.max(points.length - 1, 1)
+      const y = height - padding - (point.retentionRate / maxValue) * (height - padding * 2)
+      return `${index === 0 ? "M" : "L"} ${x} ${y}`
+    })
+    .join(" ")
+
+  return (
+    <div className="space-y-4">
+      <svg className="w-full" viewBox={`0 0 ${width} ${height}`}>
+        <path
+          d={`M ${padding} ${height - padding} H ${width - padding}`}
+          fill="none"
+          stroke="var(--color-border)"
+          strokeWidth="1.5"
+        />
+        <path d={path} fill="none" stroke="var(--color-foreground)" strokeLinecap="round" strokeWidth="3" />
+        {points.map((point, index) => {
+          const x = padding + (index * (width - padding * 2)) / Math.max(points.length - 1, 1)
+          const y = height - padding - (point.retentionRate / maxValue) * (height - padding * 2)
+          return (
+            <circle
+              cx={x}
+              cy={y}
+              fill="var(--color-background)"
+              key={point.weekLabel}
+              r="4.5"
+              stroke="var(--color-foreground)"
+              strokeWidth="2"
+            />
+          )
+        })}
+      </svg>
+      <div className="grid gap-2 sm:grid-cols-4">
+        {points.map((point) => (
+          <div className="rounded-lg border border-border bg-muted/20 px-3 py-2 text-sm" key={point.weekLabel}>
+            <p className="font-medium">{point.weekLabel}</p>
+            <p className="text-muted-foreground">{point.retentionRate}%</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function ReviewStatsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -25,6 +102,8 @@ export function ReviewStatsPage() {
   useEffect(() => {
     if (!userId) {
       setLoading(false)
+      setStats(null)
+      setDeck([])
       return
     }
 
@@ -32,7 +111,7 @@ export function ReviewStatsPage() {
     setError(null)
     Promise.all([
       ReviewApi.getStats(userId),
-      ReviewApi.getDeck({ userId, page: 0, size: 100 }),
+      ReviewApi.getDeck({ page: 0, size: 100, userId }),
     ])
       .then(([reviewStats, deckPage]) => {
         setStats(reviewStats)
@@ -48,51 +127,69 @@ export function ReviewStatsPage() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-slate-900">Estadísticas de repaso</h1>
-        <p className="text-sm text-slate-600">
-          Observa retención reciente, estabilidad promedio y las palabras que más cuestan.
-        </p>
-      </div>
-
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <select
-          aria-label="Usuario para estadísticas"
-          value={userId || ""}
-          onChange={(event) => {
-            const value = event.target.value
-            setSearchParams(value ? { userId: value } : {}, { replace: true })
-          }}
-          className="w-full max-w-sm rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500"
-        >
-          <option value="">Selecciona un usuario</option>
-          {users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.firstName} {user.lastName}
-            </option>
-          ))}
-        </select>
-      </section>
+    <PageShell
+      subtitle="Retención, estabilidad y distribución del deck en una sola vista."
+      title="Estadísticas de repaso"
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Usuario</CardTitle>
+        </CardHeader>
+        <CardContent className="max-w-sm">
+          <Select
+            onValueChange={(value) => setSearchParams(value === "none" ? {} : { userId: value }, { replace: true })}
+            value={userId ? String(userId) : "none"}
+          >
+            <SelectTrigger aria-label="Usuario para estadísticas">
+              <SelectValue placeholder="Selecciona un usuario" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Selecciona un usuario</SelectItem>
+              {users.map((user) => (
+                <SelectItem key={user.id} value={String(user.id)}>
+                  {user.firstName} {user.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton className="h-32 w-full" key={index} />
+            ))}
+          </div>
+          <Skeleton className="h-40 w-full" />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Skeleton className="h-80 w-full" />
+            <Skeleton className="h-80 w-full" />
+          </div>
         </div>
       ) : !userId ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center text-sm text-slate-600">
-          Selecciona un usuario para ver su analítica de repaso.
-        </div>
+        <EmptyState
+          description="Elige un usuario para ver retención reciente, estabilidad y tarjetas con más fallos."
+          icon={Search}
+          title="Selecciona un usuario"
+        />
       ) : error || !stats ? (
-        <div className="rounded-3xl border border-red-200 bg-red-50 px-6 py-16 text-center text-sm text-red-700">
-          {error ?? "No se encontraron estadísticas."}
-        </div>
+        <Alert variant="destructive">
+          <AlertTitle>Error de carga</AlertTitle>
+          <AlertDescription>{error ?? "No se encontraron estadísticas."}</AlertDescription>
+        </Alert>
       ) : (
         <>
           {selectedUser ? (
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-900">
-              Analítica de {selectedUser.firstName} {selectedUser.lastName}.
-            </div>
+            <Alert>
+              <AlertTitle>
+                {selectedUser.firstName} {selectedUser.lastName}
+              </AlertTitle>
+              <AlertDescription>
+                Analítica consolidada del deck activo y de su historial reciente de repaso.
+              </AlertDescription>
+            </Alert>
           ) : null}
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -102,32 +199,35 @@ export function ReviewStatsPage() {
             <MetricCard label="Deck total" value={stats.totalCards} />
           </div>
 
-          <StreakIndicator
-            longestStreak={stats.longestStreak}
-            retentionRate={stats.retentionRate}
-          />
+          <StreakIndicator longestStreak={stats.longestStreak} retentionRate={stats.retentionRate} />
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
             <StabilityHeatmap cards={deck} stats={stats} />
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Retención semanal</h2>
-              <WeeklyRetentionChart stats={stats} />
-            </section>
+            <Card>
+              <CardHeader>
+                <CardTitle>Retención semanal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WeeklyRetentionChart stats={stats} />
+              </CardContent>
+            </Card>
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Distribución por estado</h2>
-              <div className="mt-5 space-y-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribución por estado</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {Object.entries(stats.byState).map(([key, value]) => (
-                  <div key={key} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm text-slate-700">
+                  <div key={key} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
                       <span>{key}</span>
-                      <span>{value}</span>
+                      <span className="tabular-nums">{value}</span>
                     </div>
-                    <div className="h-2 rounded-full bg-slate-100">
+                    <div className="h-2 rounded-full bg-muted">
                       <div
-                        className="h-full rounded-full bg-blue-600"
+                        className="h-full rounded-full bg-foreground/80"
                         style={{
                           width: `${stats.totalCards === 0 ? 0 : Math.max((value / stats.totalCards) * 100, 4)}%`,
                         }}
@@ -135,87 +235,36 @@ export function ReviewStatsPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </section>
+              </CardContent>
+            </Card>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Top 10 con más fallos</h2>
-              <div className="mt-5 space-y-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top 10 con más fallos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {stats.topFailedCards.length > 0 ? (
                   stats.topFailedCards.map((card) => (
-                    <div
-                      key={card.cardId}
-                      className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm"
-                    >
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3" key={card.cardId}>
                       <div>
-                        <p className="font-medium text-slate-900">{card.term}</p>
-                        <p className="text-slate-500">{card.layer}</p>
+                        <p className="font-medium">{card.term}</p>
+                        <p className="text-sm text-muted-foreground">{card.layer}</p>
                       </div>
-                      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                        {card.lapses} lapses
-                      </span>
+                      <Badge variant="outline">{card.lapses} lapses</Badge>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-500">
-                    Todavía no hay tarjetas con fallos registrados.
-                  </p>
+                  <EmptyState
+                    description="Cuando existan lapses registrados, aparecerán aquí para ayudarte a priorizar revisión."
+                    icon={Search}
+                    title="Sin tarjetas problemáticas"
+                  />
                 )}
-              </div>
-            </section>
+              </CardContent>
+            </Card>
           </div>
         </>
       )}
-    </div>
-  )
-}
-
-function MetricCard({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-slate-900">{value}</p>
-    </div>
-  )
-}
-
-function WeeklyRetentionChart({ stats }: { stats: ReviewStats }) {
-  const width = 480
-  const height = 220
-  const padding = 24
-  const points = stats.weeklyRetention
-  const maxValue = Math.max(100, ...points.map((point) => point.retentionRate))
-
-  if (points.length === 0) {
-    return <p className="mt-5 text-sm text-slate-500">Aún no hay datos semanales para graficar.</p>
-  }
-
-  const path = points
-    .map((point, index) => {
-      const x = padding + (index * (width - padding * 2)) / Math.max(points.length - 1, 1)
-      const y = height - padding - (point.retentionRate / maxValue) * (height - padding * 2)
-      return `${index === 0 ? "M" : "L"} ${x} ${y}`
-    })
-    .join(" ")
-
-  return (
-    <div className="mt-5 space-y-3">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
-        <path d={path} fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
-        {points.map((point, index) => {
-          const x = padding + (index * (width - padding * 2)) / Math.max(points.length - 1, 1)
-          const y = height - padding - (point.retentionRate / maxValue) * (height - padding * 2)
-          return <circle key={point.weekLabel} cx={x} cy={y} r="4" fill="#1d4ed8" />
-        })}
-      </svg>
-      <div className="grid gap-2 text-xs text-slate-500 sm:grid-cols-4">
-        {points.map((point) => (
-          <div key={point.weekLabel} className="rounded-xl bg-slate-50 px-3 py-2">
-            <p className="font-medium text-slate-700">{point.weekLabel}</p>
-            <p>{point.retentionRate}%</p>
-          </div>
-        ))}
-      </div>
-    </div>
+    </PageShell>
   )
 }
