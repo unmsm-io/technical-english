@@ -18,6 +18,7 @@ import { TaskResultPage } from "./pages/TaskResultPage"
 import { SummativeListPage } from "./pages/SummativeListPage"
 import { SummativeRunnerPage } from "./pages/SummativeRunnerPage"
 import { SummativeResultPage } from "./pages/SummativeResultPage"
+import { PortfolioPage } from "./pages/PortfolioPage"
 import { ReviewSessionPage } from "./pages/ReviewSessionPage"
 import { ReviewDeckPage } from "./pages/ReviewDeckPage"
 import { ReviewStatsPage } from "./pages/ReviewStatsPage"
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="summative" element={<SummativeListPage />} />
         <Route path="summative/:id/run" element={<SummativeRunnerPage />} />
         <Route path="summative/:id/result/:attemptId" element={<SummativeResultPage />} />
+        <Route path="portfolio" element={<PortfolioPage />} />
         <Route path="review/session" element={<ReviewSessionPage />} />
         <Route path="review/deck" element={<ReviewDeckPage />} />
         <Route path="review/stats" element={<ReviewStatsPage />} />

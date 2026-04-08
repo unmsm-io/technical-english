@@ -15,6 +15,7 @@ const segmentLabels: Record<string, string> = {
   result: "Resultado",
   run: "Ejecución",
   content: "Contenido",
+  portfolio: "Portafolio",
   review: "Repaso",
   session: "Sesión",
   deck: "Deck",
