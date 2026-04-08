@@ -1,6 +1,12 @@
 import { Loader2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { EmptyState } from "../components/ui/empty-state"
+import { Textarea } from "../components/ui/textarea"
 import { SummativeApi } from "../features/summative/SummativeApi"
 import { McqQuestion } from "../features/summative/components/McqQuestion"
 import { SpecReader } from "../features/summative/components/SpecReader"
@@ -86,29 +92,32 @@ export function SummativeRunnerPage() {
       return 0
     }
 
-    return currentTest.comprehensionQuestions.filter((_, index) => comprehensionAnswers[index] === undefined)
-      .length
+    return currentTest.comprehensionQuestions.filter((_, index) => comprehensionAnswers[index] === undefined).length
   }, [comprehensionAnswers, currentTest])
 
   if (!testId) {
-    return <Navigate to="/summative" replace />
+    return <Navigate replace to="/summative" />
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <Loader2 className="size-6 animate-spin" />
       </div>
     )
   }
 
   if (error || !currentTest || !currentAttempt || !currentPhase) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center">
-        <p className="text-sm text-red-700">
-          {error ?? "No se encontró una sesión sumativa activa."}
-        </p>
-      </div>
+      <PageShell
+        subtitle="No fue posible preparar el flujo sumativo."
+        title="Prueba final"
+      >
+        <Alert variant="destructive">
+          <AlertTitle>Error de sesión</AlertTitle>
+          <AlertDescription>{error ?? "No se encontró una sesión sumativa activa."}</AlertDescription>
+        </Alert>
+      </PageShell>
     )
   }
 
@@ -145,121 +154,105 @@ export function SummativeRunnerPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <nav aria-label="Breadcrumb" className="text-sm text-gray-500">
-        <ol className="flex flex-wrap items-center gap-2">
-          <li>
-            <Link to="/" className="transition hover:text-gray-900">
-              Inicio
-            </Link>
-          </li>
-          <li>&gt;</li>
-          <li>
-            <Link to="/summative" className="transition hover:text-gray-900">
-              Pruebas finales
-            </Link>
-          </li>
-          <li>&gt;</li>
-          <li className="font-medium text-gray-900">{phaseLabel(currentPhase)}</li>
-        </ol>
-      </nav>
-
-      <div className="space-y-3">
-        <SummativePhaseStepper phase={currentPhase} />
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{currentTest.titleEs}</h1>
-          <p className="mt-1 text-sm text-gray-600">{currentTest.descriptionEs}</p>
-        </div>
-      </div>
+    <PageShell
+      subtitle={currentTest.descriptionEs}
+      title={currentTest.titleEs}
+    >
+      <SummativePhaseStepper phase={currentPhase} />
 
       {storeError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-          {storeError}
-        </div>
+        <Alert variant="destructive">
+          <AlertTitle>Error del flujo</AlertTitle>
+          <AlertDescription>{storeError}</AlertDescription>
+        </Alert>
       ) : null}
 
       {currentPhase === "READING" ? (
         <>
           <SpecReader
-            title="Lee el material técnico"
             instructionEs={currentTest.readingContextEs}
             specEn={currentTest.readingSpecEn}
+            title="Lee el material técnico"
           />
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">Qué producirás después</h2>
-            <p className="mt-3 text-sm leading-6 text-gray-600">
-              {currentTest.productionInstructionEs}
-            </p>
-            <button
-              type="button"
-              onClick={handleAdvanceToProduction}
-              className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
-            >
-              Continuar a producción
-            </button>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Qué producirás después</CardTitle>
+              <CardDescription>{currentTest.productionInstructionEs}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={handleAdvanceToProduction}>Continuar a producción</Button>
+            </CardContent>
+          </Card>
         </>
       ) : null}
 
       {currentPhase === "PRODUCTION" ? (
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Redacta tu respuesta</h2>
-          <p className="mt-3 text-sm leading-6 text-gray-600">
-            {currentTest.productionInstructionEs}
-          </p>
-          <textarea
-            value={productionAnswer}
-            onChange={(event) => setProductionAnswer(event.target.value)}
-            placeholder="Write your answer in English."
-            rows={10}
-            className="mt-5 w-full rounded-2xl border border-gray-300 px-4 py-3 text-sm leading-6 outline-none transition focus:border-blue-500"
-          />
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={handleProductionSubmit}
-              disabled={isSubmitting || productionAnswer.trim().length < 20}
-              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-            >
-              {isSubmitting ? "Evaluando..." : "Enviar producción"}
-            </button>
-            <span className="text-sm text-gray-500">
-              Usa 2 o 3 frases claras en inglés técnico.
-            </span>
-          </div>
-        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle>Redacta tu respuesta</CardTitle>
+            <CardDescription>{currentTest.productionInstructionEs}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              onChange={(event) => setProductionAnswer(event.target.value)}
+              placeholder="Write your answer in English."
+              rows={10}
+              value={productionAnswer}
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                disabled={isSubmitting || productionAnswer.trim().length < 20}
+                onClick={handleProductionSubmit}
+              >
+                {isSubmitting ? "Evaluando..." : "Enviar producción"}
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Usa 2 o 3 frases claras en inglés técnico.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       ) : null}
 
       {currentPhase === "COMPREHENSION" ? (
         <div className="space-y-4">
-          {currentTest.comprehensionQuestions.map((question, index) => (
-            <McqQuestion
-              key={`${question.question}-${index}`}
-              index={index}
-              question={question}
-              selectedAnswerIdx={comprehensionAnswers[index] ?? null}
-              onChange={(answerIdx) => setComprehensionAnswer(index, answerIdx)}
+          {currentTest.comprehensionQuestions.length === 0 ? (
+            <EmptyState
+              description="Esta prueba no trae preguntas de comprensión configuradas."
+              icon={Loader2}
+              title="Sin preguntas"
             />
-          ))}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-gray-600">
+          ) : (
+            currentTest.comprehensionQuestions.map((question, index) => (
+              <McqQuestion
+                index={index}
+                key={`${question.question}-${index}`}
+                onChange={(answerIdx) => setComprehensionAnswer(index, answerIdx)}
+                question={question}
+                selectedAnswerIdx={comprehensionAnswers[index] ?? null}
+              />
+            ))
+          )}
+          <Card>
+            <CardContent className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">
                 {unansweredCount === 0
                   ? "Todo listo para cerrar la prueba."
                   : `Faltan ${unansweredCount} respuestas por completar.`}
               </p>
-              <button
-                type="button"
-                onClick={handleComprehensionSubmit}
-                disabled={isSubmitting}
-                className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-              >
+              <Button disabled={isSubmitting} onClick={handleComprehensionSubmit}>
                 {isSubmitting ? "Guardando..." : "Enviar comprensión"}
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       ) : null}
-    </div>
+
+      <div className="flex justify-end">
+        <Button asChild size="sm" variant="ghost">
+          <Link to="/summative">{phaseLabel(currentPhase)} · salir</Link>
+        </Button>
+      </div>
+    </PageShell>
   )
 }

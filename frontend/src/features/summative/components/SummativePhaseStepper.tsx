@@ -1,6 +1,7 @@
+import { cn } from "../../../lib/utils"
 import type { SummativePhase } from "../../../types/summative"
 
-const phases: Array<{ value: SummativePhase; label: string }> = [
+const phases: Array<{ label: string; value: SummativePhase }> = [
   { value: "READING", label: "Lectura" },
   { value: "PRODUCTION", label: "Producción" },
   { value: "COMPREHENSION", label: "Comprensión" },
@@ -18,19 +19,30 @@ export function SummativePhaseStepper({ phase }: { phase: SummativePhase }) {
 
         return (
           <div
+            className={cn(
+              "rounded-lg border px-4 py-3",
+              active && "border-foreground bg-accent",
+              complete && "border-border bg-muted/40",
+              !active && !complete && "border-border bg-card"
+            )}
             key={item.value}
-            className={`rounded-2xl border px-4 py-3 text-sm transition ${
-              active
-                ? "border-blue-300 bg-blue-50 text-blue-800"
-                : complete
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                  : "border-gray-200 bg-white text-gray-500"
-            }`}
           >
-            <div className="text-xs font-medium uppercase tracking-wide">
-              Fase {index + 1}
+            <div className="flex items-center gap-3">
+              <span
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-full border text-sm font-semibold tabular-nums",
+                  active && "border-foreground bg-foreground text-background",
+                  complete && "border-border bg-muted text-foreground",
+                  !active && !complete && "border-border text-muted-foreground"
+                )}
+              >
+                {index + 1}
+              </span>
+              <div>
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Fase</p>
+                <p className="text-sm font-medium">{item.label}</p>
+              </div>
             </div>
-            <div className="mt-1 font-semibold">{item.label}</div>
           </div>
         )
       })}
