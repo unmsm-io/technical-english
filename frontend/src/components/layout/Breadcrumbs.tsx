@@ -28,11 +28,11 @@ const segmentLabels: Record<string, string> = {
   deck: "Deck",
   stats: "Estadísticas",
   mastery: "Mi dominio",
-  kcs: "Knowledge components",
+  kcs: "Componentes de conocimiento",
   admin: "Admin",
   calibration: "Calibración",
   "generated-items": "Items generados",
-  "verification-metrics": "Métricas",
+  "verification-metrics": "Métricas de verificación",
   "cohort-analytics": "Cohort analytics",
   pilot: "Estudios piloto",
   cohorts: "Cohortes",
@@ -43,7 +43,7 @@ export function Breadcrumbs() {
   const location = useLocation()
   const segments = location.pathname.split("/").filter(Boolean)
 
-  if (segments.length === 0 || (segments[0] === "tasks" && segments.length > 1)) {
+  if (segments.length === 0) {
     return null
   }
 

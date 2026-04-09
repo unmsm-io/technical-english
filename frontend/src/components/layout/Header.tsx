@@ -1,8 +1,9 @@
-import { BookOpen, ChevronDown, Command, GraduationCap, Languages, LayoutDashboard, Menu, Radar, Shield, UserCircle2 } from "lucide-react"
+import { ChevronDown, Search, Settings, UserRound, LogOut } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
-import { getUsers } from "../../api/users"
+import { Link, NavLink, useLocation } from "react-router"
+import { getUser } from "../../api/users"
 import type { User } from "../../types"
+import { cn } from "../../lib/utils"
 import { ThemeToggle } from "../theme-toggle"
 import { Avatar, AvatarFallback } from "../ui/avatar"
 import { Button } from "../ui/button"
@@ -14,133 +15,134 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
-import { Input } from "../ui/input"
+import { Kbd } from "../ui/kbd"
+import { MobileNav } from "./MobileNav"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "../ui/sheet"
-import { cn } from "../../lib/utils"
+  adminNavItems,
+  administrationNavItems,
+  evaluationNavItems,
+  isRouteActive,
+  primaryNavItems,
+} from "./navigation"
 
-const primaryNav = [
-  { label: "Panel", to: "/", icon: LayoutDashboard },
-  { label: "Vocabulario", to: "/vocabulary", icon: Languages },
-  { label: "Tareas", to: "/tasks", icon: BookOpen },
-  { label: "Repaso", to: "/review/deck", icon: Command },
-  { label: "Mi dominio", to: "/mastery", icon: Radar },
-  { label: "Portafolio", to: "/portfolio", icon: GraduationCap },
-] as const
+function buildUserLink(user: User | null, suffix = "") {
+  if (!user) {
+    return "/users"
+  }
 
-const secondaryNav = [
-  { label: "Pruebas finales", to: "/summative" },
-  { label: "Perfilador", to: "/profiler" },
-  { label: "Diagnóstico", to: "/diagnostic/start" },
-  { label: "Usuarios", to: "/users" },
-  { label: "Contenido", to: "/content" },
-] as const
+  return suffix ? `/users/${user.id}/${suffix}` : `/users/${user.id}`
+}
 
-const adminNav = [
-  { label: "Items generados", to: "/admin/generated-items" },
-  { label: "Calibración", to: "/admin/calibration" },
-  { label: "Métricas de verificación", to: "/admin/verification-metrics" },
-  { label: "Analítica de cohortes", to: "/admin/cohort-analytics" },
-  { label: "Estudios piloto", to: "/admin/pilot" },
-] as const
-
-function isActivePath(pathname: string, to: string) {
-  return to === "/" ? pathname === "/" : pathname.startsWith(to)
+function HeaderLogo() {
+  return (
+    <Link className="flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" to="/">
+      <div className="flex size-8 items-center justify-center rounded-md border border-border bg-card shadow-sm">
+        <div className="size-5 rounded-[0.4rem] border border-foreground/15 bg-foreground/5" />
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm font-semibold tracking-tight">TechEng</span>
+        <span className="hidden text-sm text-muted-foreground sm:inline">technical-english</span>
+      </div>
+    </Link>
+  )
 }
 
 export function Header() {
   const location = useLocation()
-  const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [users, setUsers] = useState<User[]>([])
-  const [showAdmin, setShowAdmin] = useState(false)
-  const selectedUserId = Number(searchParams.get("userId") ?? "") || null
+  const pathname = location.pathname
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   useEffect(() => {
-    getUsers(0, 100)
-      .then((page) => {
-        setUsers(page.content)
-        setShowAdmin(page.content.some((user) => user.role === "ADMIN"))
-      })
-      .catch(() => {
-        setUsers([])
-        setShowAdmin(false)
-      })
-  }, [])
+    const params = new URLSearchParams(location.search)
+    const rawUserId = Number(params.get("userId") ?? "")
 
-  const selectedUser = useMemo(
-    () => users.find((user) => user.id === selectedUserId) ?? null,
-    [selectedUserId, users]
+    if (!rawUserId) {
+      setCurrentUser(null)
+      return
+    }
+
+    getUser(rawUserId).then(setCurrentUser).catch(() => setCurrentUser(null))
+  }, [location.search])
+
+  const showAdmin = currentUser?.role === "ADMIN"
+
+  const moreNavItems = useMemo(
+    () => ({
+      admin: showAdmin ? adminNavItems : [],
+      administration: administrationNavItems,
+      evaluation: evaluationNavItems,
+    }),
+    [showAdmin]
   )
 
-  const handleUserChange = (value: string) => {
-    const nextParams = new URLSearchParams(searchParams)
-    if (value) {
-      nextParams.set("userId", value)
-    } else {
-      nextParams.delete("userId")
-    }
-    setSearchParams(nextParams, { replace: true })
-  }
-
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <a
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2"
         href="#app-content"
       >
         Saltar al contenido
       </a>
-      <div className="mx-auto flex h-14 max-w-screen-xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-6">
-          <Link className="flex items-center gap-2" to="/">
-            <div className="flex size-8 items-center justify-center rounded-md border bg-card">
-              <BookOpen className="size-4" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold tracking-tight">TechEng</span>
-              <span className="text-[11px] text-muted-foreground">technical-english</span>
-            </div>
-          </Link>
-          <nav className="hidden items-center gap-1 md:flex">
-            {primaryNav.map((item) => (
-              <Link
-                className={cn(
-                  "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                  isActivePath(location.pathname, item.to) && "bg-accent text-foreground"
-                )}
+
+      <div className="mx-auto flex h-12 max-w-screen-2xl items-center justify-between gap-3 px-4 sm:px-6 md:h-14 lg:px-8">
+        <div className="flex min-w-0 items-center gap-4 md:gap-6">
+          <HeaderLogo />
+
+          <nav aria-label="Navegación principal" className="hidden items-center gap-1 md:flex">
+            {primaryNavItems.map((item) => (
+              <NavLink
+                aria-current={isRouteActive(pathname, item.to) ? "page" : undefined}
+                className={({ isActive }) =>
+                  cn(
+                    "inline-flex h-9 items-center rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    (isActive || isRouteActive(pathname, item.to)) && "text-foreground"
+                  )
+                }
+                end={item.to === "/"}
                 key={item.to}
                 to={item.to}
               >
-                <item.icon className="size-4" />
                 {item.label}
-              </Link>
+              </NavLink>
             ))}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost">
+                <Button className="h-9 rounded-full px-3 text-sm font-medium text-muted-foreground" size="sm" variant="ghost">
                   Más
                   <ChevronDown className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {secondaryNav.map((item) => (
-                  <DropdownMenuItem key={item.to} onClick={() => navigate(item.to)}>
-                    {item.label}
+              <DropdownMenuContent align="start" className="w-64">
+                <DropdownMenuLabel>Evaluación</DropdownMenuLabel>
+                {moreNavItems.evaluation.map((item) => (
+                  <DropdownMenuItem asChild key={item.to}>
+                    <Link className="flex items-center gap-2" to={item.to}>
+                      <item.icon className="size-4" />
+                      {item.label}
+                    </Link>
                   </DropdownMenuItem>
                 ))}
-                {showAdmin ? (
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Administración</DropdownMenuLabel>
+                {moreNavItems.administration.map((item) => (
+                  <DropdownMenuItem asChild key={item.to}>
+                    <Link className="flex items-center gap-2" to={item.to}>
+                      <item.icon className="size-4" />
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                {moreNavItems.admin.length > 0 ? (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel>Admin</DropdownMenuLabel>
-                    {adminNav.map((item) => (
-                      <DropdownMenuItem key={item.to} onClick={() => navigate(item.to)}>
-                        {item.label}
+                    {moreNavItems.admin.map((item) => (
+                      <DropdownMenuItem asChild key={item.to}>
+                        <Link className="flex items-center gap-2" to={item.to}>
+                          <item.icon className="size-4" />
+                          {item.label}
+                        </Link>
                       </DropdownMenuItem>
                     ))}
                   </>
@@ -149,96 +151,63 @@ export function Header() {
             </DropdownMenu>
           </nav>
         </div>
-        <div className="hidden items-center gap-2 md:flex">
+
+        <div className="flex items-center gap-1.5">
           <Button
             aria-label="Abrir paleta de comandos"
+            className="h-9 gap-2 rounded-full px-2.5 sm:px-3"
             onClick={() => window.dispatchEvent(new Event("command-palette:open"))}
             size="sm"
-            variant="outline"
+            variant="ghost"
           >
-            <Command className="size-4" />
-            Cmd+K
+            <Search className="size-4" />
+            <span className="hidden text-sm text-muted-foreground lg:inline">Buscar</span>
+            <Kbd className="hidden lg:inline-flex">⌘K</Kbd>
           </Button>
-          <div className="w-56">
-            <Input
-              aria-label="Usuario activo"
-              list="header-user-options"
-              onChange={(event) => {
-                const nextUser = users.find((user) => {
-                  const fullName = `${user.firstName} ${user.lastName}`
-                  return fullName === event.target.value
-                })
-                handleUserChange(nextUser ? String(nextUser.id) : "")
-              }}
-              placeholder="Usuario activo"
-              value={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : ""}
-            />
-            <datalist id="header-user-options">
-              {users.map((user) => (
-                <option key={user.id} value={`${user.firstName} ${user.lastName}`} />
-              ))}
-            </datalist>
-          </div>
+
           <ThemeToggle />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="gap-2" size="icon" variant="ghost">
-                <Avatar className="size-8">
-                  <AvatarFallback>
-                    <UserCircle2 className="size-4" />
+              <Button aria-label="Abrir menú de usuario" className="h-9 rounded-full px-2" size="sm" variant="ghost">
+                <Avatar className="size-7 border border-border">
+                  <AvatarFallback className="text-xs font-semibold">
+                    {currentUser?.firstName?.[0] ?? "U"}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Acciones rápidas</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigate("/users/new")}>Nuevo usuario</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/users")}>Ver usuarios</DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="space-y-0.5">
+                <div className="font-medium text-foreground">
+                  {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : "Usuario actual"}
+                </div>
+                <div className="text-xs font-normal text-muted-foreground">
+                  {currentUser?.email ?? "Sin usuario seleccionado"}
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link className="flex items-center gap-2" to={buildUserLink(currentUser)}>
+                  <UserRound className="size-4" />
+                  Mi perfil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link className="flex items-center gap-2" to={buildUserLink(currentUser, "edit")}>
+                  <Settings className="size-4" />
+                  Configuración
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex items-center gap-2">
+                <LogOut className="size-4" />
+                Cerrar sesión
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button aria-label="Abrir navegación móvil" size="icon" variant="ghost">
-                <Menu className="size-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-              <SheetHeader>
-                <SheetTitle>Navegación</SheetTitle>
-              </SheetHeader>
-              <div className="mt-6 flex flex-col gap-2">
-                {[...primaryNav, ...secondaryNav, ...(showAdmin ? adminNav : [])].map((item) => (
-                  <Link
-                    className={cn(
-                      "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                      isActivePath(location.pathname, item.to) && "bg-accent text-foreground"
-                    )}
-                    key={item.to}
-                    to={item.to}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-              <div className="mt-6 space-y-2">
-                <Button
-                  className="w-full justify-start"
-                  onClick={() => window.dispatchEvent(new Event("command-palette:open"))}
-                  variant="outline"
-                >
-                  <Command className="size-4" />
-                  Abrir comandos
-                </Button>
-                <Button className="w-full justify-start" onClick={() => navigate("/users/new")} variant="ghost">
-                  <Shield className="size-4" />
-                  Crear usuario
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+
+          <MobileNav currentUser={currentUser} pathname={pathname} showAdmin={showAdmin} />
         </div>
       </div>
     </header>

@@ -1,24 +1,22 @@
-import { Plus, Search, UserPlus } from "lucide-react"
+import { Plus, Search, UserPlus, WandSparkles } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router"
 import { getVocabulary } from "../features/vocabulary/VocabularyApi"
 import { cn } from "../lib/utils"
+import {
+  adminNavItems,
+  administrationNavItems,
+  evaluationNavItems,
+  primaryNavItems,
+} from "./layout/navigation"
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "./ui/command"
 import { useTheme } from "./theme-provider"
 
 const staticCommands = [
-  { group: "Navegación", label: "Panel", path: "/" },
-  { group: "Navegación", label: "Vocabulario", path: "/vocabulary" },
-  { group: "Navegación", label: "Tareas", path: "/tasks" },
-  { group: "Navegación", label: "Repaso", path: "/review/deck" },
-  { group: "Navegación", label: "Mi dominio", path: "/mastery" },
-  { group: "Navegación", label: "Portafolio", path: "/portfolio" },
-  { group: "Navegación", label: "Pruebas finales", path: "/summative" },
-  { group: "Admin", label: "Items generados", path: "/admin/generated-items" },
-  { group: "Admin", label: "Calibración", path: "/admin/calibration" },
-  { group: "Admin", label: "Métricas de verificación", path: "/admin/verification-metrics" },
-  { group: "Admin", label: "Analítica de cohortes", path: "/admin/cohort-analytics" },
-  { group: "Admin", label: "Estudios piloto", path: "/admin/pilot" },
+  ...primaryNavItems.map((item) => ({ group: "Navegación", label: item.label, path: item.to })),
+  ...evaluationNavItems.map((item) => ({ group: "Evaluación", label: item.label, path: item.to })),
+  ...administrationNavItems.map((item) => ({ group: "Administración", label: item.label, path: item.to })),
+  ...adminNavItems.map((item) => ({ group: "Admin", label: item.label, path: item.to })),
 ] as const
 
 export function CommandPalette() {
@@ -115,6 +113,16 @@ export function CommandPalette() {
             <UserPlus className="size-4" />
             <span>Crear usuario</span>
             <CommandShortcut>Nuevo</CommandShortcut>
+          </CommandItem>
+          <CommandItem onSelect={() => handleNavigate("/tasks")}>
+            <WandSparkles className="size-4" />
+            <span>Comenzar tarea aleatoria</span>
+            <CommandShortcut>Tareas</CommandShortcut>
+          </CommandItem>
+          <CommandItem onSelect={() => handleNavigate("/diagnostic/start")}>
+            <Search className="size-4" />
+            <span>Tomar diagnóstico</span>
+            <CommandShortcut>Inicio</CommandShortcut>
           </CommandItem>
         </CommandGroup>
         {searchHits.length > 0 ? (

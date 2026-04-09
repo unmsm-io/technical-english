@@ -1,49 +1,15 @@
 import { Loader2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Badge } from "../components/ui/badge"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Textarea } from "../components/ui/textarea"
 import { TaskApi } from "../features/task/TaskApi"
 import { FeedbackPanel } from "../features/task/components/FeedbackPanel"
 import type { TaskAttempt, TaskDetail, TaskFeedback } from "../types/task"
-
-function TaskResultBreadcrumb({ taskId, title }: { taskId: number; title: string }) {
-  return (
-    <nav aria-label="Breadcrumb" className="mb-6">
-      <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-        <li>
-          <Link to="/" className="transition hover:text-gray-900">
-            Home
-          </Link>
-        </li>
-        <li>&gt;</li>
-        <li>
-          <Link to="/tasks" className="transition hover:text-gray-900">
-            Tareas
-          </Link>
-        </li>
-        <li>&gt;</li>
-        <li>
-          <Link to={`/tasks/${taskId}`} className="transition hover:text-gray-900">
-            {title}
-          </Link>
-        </li>
-        <li>&gt;</li>
-        <li className="font-medium text-gray-900">Resultado</li>
-      </ol>
-    </nav>
-  )
-}
-
-function getScoreBadgeClasses(score: number) {
-  if (score >= 80) {
-    return "bg-emerald-100 text-emerald-800"
-  }
-
-  if (score >= 50) {
-    return "bg-amber-100 text-amber-800"
-  }
-
-  return "bg-red-100 text-red-800"
-}
 
 function buildFeedback(task: TaskDetail, attempt: TaskAttempt): TaskFeedback | null {
   if (!attempt.llmFeedbackPayload || attempt.score === null || !attempt.userAnswerEn) {
@@ -52,38 +18,34 @@ function buildFeedback(task: TaskDetail, attempt: TaskAttempt): TaskFeedback | n
 
   return {
     attemptId: attempt.id,
+    expectedAnswerEn: task.expectedAnswerEn,
+    improvedAnswer: attempt.llmFeedbackPayload.improvedAnswer,
+    languageFocusComments: attempt.llmFeedbackPayload.languageFocusComments,
+    llmFeedbackPayload: attempt.llmFeedbackPayload,
+    postTaskExplanationEs: task.postTaskExplanationEs,
+    score: attempt.score,
     taskId: task.id,
     taskType: task.taskType,
-    score: attempt.score,
     userAnswerEn: attempt.userAnswerEn,
-    expectedAnswerEn: task.expectedAnswerEn,
-    postTaskExplanationEs: task.postTaskExplanationEs,
-    llmFeedbackPayload: attempt.llmFeedbackPayload,
-    languageFocusComments: attempt.llmFeedbackPayload.languageFocusComments,
-    improvedAnswer: attempt.llmFeedbackPayload.improvedAnswer,
   }
 }
 
 function buildRewriteFeedback(task: TaskDetail, attempt: TaskAttempt): TaskFeedback | null {
-  if (
-    !attempt.rewriteFeedbackPayload ||
-    attempt.rewriteScore === null ||
-    !attempt.rewriteAnswerEn
-  ) {
+  if (!attempt.rewriteFeedbackPayload || attempt.rewriteScore === null || !attempt.rewriteAnswerEn) {
     return null
   }
 
   return {
     attemptId: attempt.id,
+    expectedAnswerEn: task.expectedAnswerEn,
+    improvedAnswer: attempt.rewriteFeedbackPayload.improvedAnswer,
+    languageFocusComments: attempt.rewriteFeedbackPayload.languageFocusComments,
+    llmFeedbackPayload: attempt.rewriteFeedbackPayload,
+    postTaskExplanationEs: task.postTaskExplanationEs,
+    score: attempt.rewriteScore,
     taskId: task.id,
     taskType: task.taskType,
-    score: attempt.rewriteScore,
     userAnswerEn: attempt.rewriteAnswerEn,
-    expectedAnswerEn: task.expectedAnswerEn,
-    postTaskExplanationEs: task.postTaskExplanationEs,
-    llmFeedbackPayload: attempt.rewriteFeedbackPayload,
-    languageFocusComments: attempt.rewriteFeedbackPayload.languageFocusComments,
-    improvedAnswer: attempt.rewriteFeedbackPayload.improvedAnswer,
   }
 }
 
@@ -144,34 +106,33 @@ export function TaskResultPage() {
   }, [attempt, task])
 
   if (!taskId || !attemptIdValue) {
-    return <Navigate to="/tasks" replace />
+    return <Navigate replace to="/tasks" />
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <Loader2 className="size-6 animate-spin" />
       </div>
     )
   }
 
   if (error || !task || !attempt) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center">
-        <p className="text-sm text-red-700">
-          {error ?? "No se encontró el resultado solicitado."}
-        </p>
-      </div>
+      <PageShell
+        subtitle="No fue posible reconstruir el intento solicitado."
+        title="Resultado"
+      >
+        <Alert variant="destructive">
+          <AlertTitle>Error de carga</AlertTitle>
+          <AlertDescription>{error ?? "No se encontró el resultado solicitado."}</AlertDescription>
+        </Alert>
+      </PageShell>
     )
   }
 
   if (attempt.phase === "PRE_TASK" || attempt.phase === "DURING_TASK") {
-    return (
-      <Navigate
-        to={`/tasks/${task.id}/run?attemptId=${attempt.id}&userId=${attempt.userId}`}
-        replace
-      />
-    )
+    return <Navigate replace to={`/tasks/${task.id}/run?attemptId=${attempt.id}&userId=${attempt.userId}`} />
   }
 
   const handleComplete = async () => {
@@ -221,125 +182,94 @@ export function TaskResultPage() {
     !rewriteSubmitting
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <TaskResultBreadcrumb taskId={task.id} title={task.titleEs} />
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Resultado TBLT</p>
-            <h1 className="mt-1 text-2xl font-semibold text-gray-900">
-              {task.titleEs}
-            </h1>
-          </div>
-          <span
-            className={`inline-flex w-fit rounded-full px-5 py-2 text-lg font-semibold ${getScoreBadgeClasses(
-              feedback?.score ?? attempt.score ?? 0
-            )}`}
-          >
-            {(feedback?.score ?? attempt.score ?? 0)}/100
-          </span>
-        </div>
-      </section>
-
+    <PageShell
+      actions={<Badge variant="secondary">{feedback?.score ?? attempt.score ?? 0}/100</Badge>}
+      subtitle={task.titleEs}
+      title="Resultado"
+    >
       {feedback ? (
         <FeedbackPanel feedback={feedback} />
       ) : (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <p className="text-sm text-amber-900">
+        <Alert>
+          <AlertTitle>Feedback parcial</AlertTitle>
+          <AlertDescription>
             El intento está guardado, pero no se pudo reconstruir el feedback detallado.
-          </p>
-        </section>
+          </AlertDescription>
+        </Alert>
       )}
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Explicación</h2>
-        <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-gray-700">
-          {task.postTaskExplanationEs}
-        </p>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Explicación</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+            {task.postTaskExplanationEs}
+          </p>
+        </CardContent>
+      </Card>
 
       {attempt.rewriteAnswerEn === null ? (
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold text-gray-900">Reescribir</h2>
-            <p className="text-sm leading-6 text-gray-600">
-              Envía una nueva versión en inglés para medir si mejoraste respecto a tu
-              primera respuesta.
+        <Card>
+          <CardHeader>
+            <CardTitle>Reescribir</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm leading-6 text-muted-foreground">
+              Envía una nueva versión en inglés para medir si mejoraste respecto a tu primera respuesta.
             </p>
-          </div>
-          <textarea
-            value={rewriteAnswer}
-            onChange={(event) => setRewriteAnswer(event.target.value)}
-            placeholder="Escribe aquí tu nueva versión en inglés."
-            className="mt-4 min-h-36 w-full rounded-2xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-          />
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button
-              type="button"
-              onClick={handleRewriteSubmit}
-              disabled={!canRewrite || rewriteAnswer.trim().length === 0}
-              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {rewriteSubmitting ? "Enviando..." : "Enviar reescritura"}
-            </button>
-            <p className="text-sm text-gray-500">
-              Solo puedes enviar una reescritura por intento.
-            </p>
-          </div>
-          {rewriteError ? <p className="mt-3 text-sm text-red-600">{rewriteError}</p> : null}
-        </section>
+            <Textarea
+              onChange={(event) => setRewriteAnswer(event.target.value)}
+              placeholder="Escribe aquí tu nueva versión en inglés."
+              rows={8}
+              value={rewriteAnswer}
+            />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button
+                disabled={!canRewrite || rewriteAnswer.trim().length === 0}
+                onClick={handleRewriteSubmit}
+              >
+                {rewriteSubmitting ? "Enviando..." : "Enviar reescritura"}
+              </Button>
+              <p className="text-sm text-muted-foreground">Solo puedes enviar una reescritura por intento.</p>
+            </div>
+            {rewriteError ? (
+              <Alert variant="destructive">
+                <AlertTitle>Error de reescritura</AlertTitle>
+                <AlertDescription>{rewriteError}</AlertDescription>
+              </Alert>
+            ) : null}
+          </CardContent>
+        </Card>
       ) : null}
 
       {rewriteFeedback || persistedRewriteFeedback ? (
-        <section className="space-y-4 rounded-2xl border border-blue-200 bg-blue-50/40 p-6 shadow-sm">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <Card>
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Resultado de la reescritura</h2>
-              <p className="text-sm text-gray-600">
-                {attempt.rewriteAccepted
-                  ? "La nueva versión mejoró el puntaje original."
-                  : "La nueva versión quedó registrada, pero no superó el puntaje original."}
-              </p>
+              <CardTitle>Resultado de la reescritura</CardTitle>
             </div>
-            <span
-              className={`inline-flex w-fit rounded-full px-4 py-2 text-sm font-semibold ${
-                attempt.rewriteAccepted
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-slate-200 text-slate-700"
-              }`}
-            >
+            <Badge variant={attempt.rewriteAccepted ? "secondary" : "outline"}>
               {attempt.rewriteAccepted ? "Mejora aceptada" : "Sin mejora"}
-            </span>
-          </div>
-          <FeedbackPanel feedback={rewriteFeedback ?? persistedRewriteFeedback!} />
-        </section>
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            <FeedbackPanel feedback={rewriteFeedback ?? persistedRewriteFeedback!} />
+          </CardContent>
+        </Card>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <button
-          type="button"
-          onClick={handleComplete}
-          disabled={completing}
-          className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+      <div className="flex flex-wrap gap-3">
+        <Button disabled={completing} onClick={handleComplete}>
           {completing ? "Marcando..." : "Marcar completada"}
-        </button>
-        <Link
-          to={`/tasks?type=${task.taskType}`}
-          className="rounded-xl border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-        >
-          Otra tarea similar
-        </Link>
-        <Link
-          to="/tasks"
-          className="rounded-xl border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-        >
-          Volver al listado
-        </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to={`/tasks?type=${task.taskType}`}>Otra tarea similar</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/tasks">Volver al listado</Link>
+        </Button>
       </div>
-
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-    </div>
+    </PageShell>
   )
 }

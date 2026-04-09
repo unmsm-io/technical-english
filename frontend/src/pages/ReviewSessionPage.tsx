@@ -1,7 +1,20 @@
-import { Loader2, Sparkles } from "lucide-react"
+import { ArrowLeft, Loader2, Search, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router"
+import { Link, useSearchParams } from "react-router"
 import { getUsers } from "../api/users"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { EmptyState } from "../components/ui/empty-state"
+import { MetricCard } from "../components/ui/metric-card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
+import { Skeleton } from "../components/ui/skeleton"
 import { GradeButtons } from "../features/review/components/GradeButtons"
 import { ReviewCard } from "../features/review/components/ReviewCard"
 import { ReviewProgressBar } from "../features/review/components/ReviewProgressBar"
@@ -10,7 +23,6 @@ import type { User } from "../types"
 import type { ReviewGrade } from "../types/review"
 
 export function ReviewSessionPage() {
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const selectedUserId = useReviewStore((state) => state.selectedUserId)
@@ -50,6 +62,7 @@ export function ReviewSessionPage() {
     if (!selectedUserId) {
       return
     }
+
     setSearchParams({ userId: String(selectedUserId) }, { replace: true })
     loadDue(selectedUserId, 20).catch(() => {})
   }, [loadDue, selectedUserId, setSearchParams])
@@ -71,189 +84,206 @@ export function ReviewSessionPage() {
 
   if (userLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+      <div className="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-48" />
+          <Skeleton className="h-[420px] w-full rounded-[28px]" />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-slate-900">Sesión de repaso</h1>
-          <p className="text-sm text-slate-600">
-            Vuelve a las palabras clave hasta consolidarlas en memoria de largo plazo.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <select
-            aria-label="Usuario para repaso"
-            value={selectedUserId ?? ""}
-            onChange={(event) => setSelectedUserId(event.target.value ? Number(event.target.value) : null)}
-            className="rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500"
-          >
-            <option value="">Selecciona un usuario</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.firstName} {user.lastName} · {user.codigo}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => selectedUserId && loadDue(selectedUserId, 20)}
-            disabled={!selectedUserId || isLoading}
-            className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Recargar sesión
-          </button>
-        </div>
-      </div>
-
-      {selectedUser ? (
-        <div className="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-900">
-          Repasando como {selectedUser.firstName} {selectedUser.lastName}.
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
-
-      {feedback ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-          <div className="flex items-start gap-3">
-            <Sparkles className="mt-0.5 h-4 w-4" />
-            <div className="space-y-1">
-              <p className="font-medium">Feedback de producción</p>
-              <p>{feedback.comment}</p>
-              {feedback.correctedSentence ? (
-                <p className="text-emerald-700">Corrección: {feedback.correctedSentence}</p>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {!selectedUserId ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
-          <p className="text-base font-medium text-slate-900">
-            Selecciona un usuario para iniciar una sesión de repaso.
-          </p>
-        </div>
-      ) : isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
-        </div>
-      ) : currentCard ? (
-        <>
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-            <div className="space-y-4">
-              <ReviewProgressBar reviewed={reviewed} remaining={remaining} />
-              <ReviewCard
-                card={currentCard}
-                flipped={isFlipped}
-                productionMode={productionMode}
-                exampleSentence={exampleSentence}
-                onFlip={flip}
-                onExampleSentenceChange={setExampleSentence}
-              />
-            </div>
-
-            <aside className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-                <p className="font-semibold text-slate-900">En cola</p>
-                <p className="mt-1">{remaining} tarjetas restantes</p>
-              </div>
-              <label className="flex items-start gap-3 rounded-2xl border border-slate-200 p-4 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={productionMode}
-                  onChange={(event) => setProductionMode(event.target.checked)}
-                  className="mt-1 h-4 w-4"
-                />
-                <span>
-                  <span className="font-medium text-slate-900">Practicar producción</span>
-                  <span className="mt-1 block text-slate-600">
-                    Envía una frase propia para recibir feedback corto del término.
-                  </span>
-                </span>
-              </label>
-              <GradeButtons
-                disabled={isGrading}
-                canGrade={isFlipped}
-                onFlip={flip}
-                onGrade={handleGrade}
-              />
-            </aside>
-          </div>
-        </>
-      ) : reviewed > 0 ? (
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-          <h2 className="text-2xl font-semibold text-emerald-900">Sesión completa</h2>
-          <p className="mt-2 text-sm text-emerald-800">
-            Revisaste {reviewed} tarjetas en aproximadamente {elapsedMinutes} minutos.
-          </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl bg-white px-4 py-5">
-              <p className="text-sm text-slate-500">Tarjetas revisadas</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">{reviewed}</p>
-            </div>
-            <div className="rounded-2xl bg-white px-4 py-5">
-              <p className="text-sm text-slate-500">Retención de la sesión</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {reviewed === 0 ? 0 : Math.round((sessionStats.successful / reviewed) * 100)}%
+    <div className="mx-auto max-w-screen-2xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <Button asChild className="h-8 px-2 text-muted-foreground" size="sm" variant="ghost">
+              <Link to={selectedUserId ? `/review/deck?userId=${selectedUserId}` : "/review/deck"}>
+                <ArrowLeft className="size-4" />
+                Salir del foco
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight">Sesión de repaso</h1>
+              <p className="text-sm text-muted-foreground">
+                Modo foco para consolidar memoria de largo plazo sin distracciones.
               </p>
             </div>
-            <div className="rounded-2xl bg-white px-4 py-5">
-              <p className="text-sm text-slate-500">Repetidas</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">{sessionStats.repeated}</p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-[240px_auto]">
+            <Select
+              onValueChange={(value) => setSelectedUserId(value === "none" ? null : Number(value))}
+              value={selectedUserId ? String(selectedUserId) : "none"}
+            >
+              <SelectTrigger aria-label="Usuario para repaso">
+                <SelectValue placeholder="Selecciona un usuario" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Selecciona un usuario</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={String(user.id)}>
+                    {user.firstName} {user.lastName} · {user.codigo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              disabled={!selectedUserId || isLoading}
+              onClick={() => selectedUserId && loadDue(selectedUserId, 20)}
+              variant="outline"
+            >
+              {isLoading ? <Loader2 className="size-4 animate-spin" /> : null}
+              Recargar sesión
+            </Button>
+          </div>
+        </div>
+
+        {selectedUser ? (
+          <Alert>
+            <AlertTitle>
+              {selectedUser.firstName} {selectedUser.lastName}
+            </AlertTitle>
+            <AlertDescription>
+              Las tarjetas y métricas se están calculando sobre su deck activo.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {error ? (
+          <Alert variant="destructive">
+            <AlertTitle>Error de repaso</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {feedback ? (
+          <Alert>
+            <Sparkles className="size-4" />
+            <AlertTitle>Feedback de producción</AlertTitle>
+            <AlertDescription>
+              {feedback.comment}
+              {feedback.correctedSentence ? ` Corrección: ${feedback.correctedSentence}` : ""}
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {!selectedUserId ? (
+          <EmptyState
+            description="Selecciona un usuario para cargar las tarjetas que vencen hoy."
+            icon={Search}
+            title="Primero elige un estudiante"
+          />
+        ) : isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-[420px] w-full rounded-[28px]" />
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton className="h-16 w-full" key={index} />
+              ))}
             </div>
           </div>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => selectedUserId && loadDue(selectedUserId, 20)}
-              className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
-            >
-              Otra sesión
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate(selectedUserId ? `/review/deck?userId=${selectedUserId}` : "/review/deck")}
-              className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              Ver deck
-            </button>
+        ) : currentCard ? (
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="space-y-4">
+              <ReviewProgressBar remaining={remaining} reviewed={reviewed} />
+              <ReviewCard
+                card={currentCard}
+                exampleSentence={exampleSentence}
+                flipped={isFlipped}
+                onExampleSentenceChange={setExampleSentence}
+                onFlip={flip}
+                productionMode={productionMode}
+              />
+            </div>
+
+            <aside className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                <MetricCard label="Revisadas" value={reviewed} />
+                <MetricCard label="Pendientes" value={remaining} />
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Controles</CardTitle>
+                  <CardDescription>
+                    Activa producción para escribir tu propia frase antes de calificar.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <label className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm">
+                    <input
+                      checked={productionMode}
+                      className="mt-1 h-4 w-4 accent-foreground"
+                      onChange={(event) => setProductionMode(event.target.checked)}
+                      type="checkbox"
+                    />
+                    <span className="space-y-1">
+                      <span className="block font-medium text-foreground">Practicar producción</span>
+                      <span className="block text-muted-foreground">
+                        Envía una frase propia y recibe feedback corto sobre uso y precisión.
+                      </span>
+                    </span>
+                  </label>
+                  <GradeButtons
+                    canGrade={isFlipped}
+                    disabled={isGrading}
+                    onFlip={flip}
+                    onGrade={handleGrade}
+                  />
+                </CardContent>
+              </Card>
+            </aside>
           </div>
-        </div>
-      ) : (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
-          <p className="text-lg font-medium text-slate-900">
-            Tu deck está al día.
-          </p>
-          <p className="mt-2 text-sm text-slate-600">
-            Vuelve más tarde o aprovecha para practicar con tareas TBLT.
-          </p>
-          <div className="mt-5 flex justify-center gap-3">
-            <Link
-              to={selectedUserId ? `/review/stats?userId=${selectedUserId}` : "/review/stats"}
-              className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-            >
-              Ver estadísticas
-            </Link>
-            <Link
-              to="/tasks"
-              className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
-            >
-              Ir a tareas
-            </Link>
+        ) : reviewed > 0 ? (
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-3">
+              <MetricCard label="Tarjetas revisadas" value={reviewed} />
+              <MetricCard
+                label="Retención de la sesión"
+                value={`${reviewed === 0 ? 0 : Math.round((sessionStats.successful / reviewed) * 100)}%`}
+              />
+              <MetricCard label="Repetidas" value={sessionStats.repeated} />
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Sesión completa</CardTitle>
+                <CardDescription>
+                  Revisaste {reviewed} tarjetas en aproximadamente {elapsedMinutes} minutos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3">
+                <Button onClick={() => selectedUserId && loadDue(selectedUserId, 20)}>
+                  Otra sesión
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to={selectedUserId ? `/review/deck?userId=${selectedUserId}` : "/review/deck"}>
+                    Ver deck
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
-        </div>
-      )}
+        ) : (
+          <EmptyState
+            action={
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button asChild variant="outline">
+                  <Link to={selectedUserId ? `/review/stats?userId=${selectedUserId}` : "/review/stats"}>
+                    Ver estadísticas
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/tasks">Ir a tareas</Link>
+                </Button>
+              </div>
+            }
+            description="No quedan tarjetas por repasar en este momento. Puedes revisar estadísticas o cambiar de usuario."
+            icon={Search}
+            title="Deck al día"
+          />
+        )}
+      </div>
     </div>
   )
 }

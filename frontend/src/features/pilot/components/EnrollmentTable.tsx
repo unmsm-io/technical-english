@@ -1,5 +1,8 @@
+import { EmptyState } from "../../../components/ui/empty-state"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table"
 import type { User } from "../../../types"
 import type { PilotEnrollment } from "../../../types/pilot"
+import { Users } from "lucide-react"
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -25,56 +28,52 @@ export function EnrollmentTable({
 }) {
   if (enrollments.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-        Todavía no hay estudiantes inscritos en esta cohorte.
-      </div>
+      <EmptyState
+        description="Todavía no hay estudiantes inscritos en esta cohorte."
+        icon={Users}
+        title="Sin estudiantes inscritos"
+      />
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50">
-            <tr className="text-left text-slate-500">
-              <th className="px-4 py-3 font-medium">Estudiante</th>
-              <th className="px-4 py-3 font-medium">Inscrito</th>
-              <th className="px-4 py-3 font-medium">Pre-test</th>
-              <th className="px-4 py-3 font-medium">Post-test</th>
-              <th className="px-4 py-3 font-medium">Acciones</th>
-              <th className="px-4 py-3 font-medium">Última actividad</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {enrollments.map((enrollment) => (
-              <tr key={enrollment.id} className="align-top">
-                <td className="px-4 py-4 font-medium text-slate-900">
-                  {resolveUserName(enrollment.userId, users)}
-                </td>
-                <td className="px-4 py-4 text-slate-600">
-                  {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-4 text-slate-600">
-                  <p>Diagnóstico #{enrollment.preTestDiagnosticAttemptId}</p>
-                  <p>{enrollment.preTestSummativeAttemptIds.length} summatives</p>
-                </td>
-                <td className="px-4 py-4 text-slate-600">
-                  {enrollment.postTestDiagnosticAttemptId ? (
-                    <>
-                      <p>Diagnóstico #{enrollment.postTestDiagnosticAttemptId}</p>
-                      <p>{enrollment.postTestSummativeAttemptIds.length} summatives</p>
-                    </>
-                  ) : (
-                    "Pendiente"
-                  )}
-                </td>
-                <td className="px-4 py-4 text-slate-600">{enrollment.actionsCount}</td>
-                <td className="px-4 py-4 text-slate-600">{formatDate(enrollment.lastActionAt)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Estudiante</TableHead>
+            <TableHead>Inscrito</TableHead>
+            <TableHead>Pre-test</TableHead>
+            <TableHead>Post-test</TableHead>
+            <TableHead>Acciones</TableHead>
+            <TableHead>Última actividad</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {enrollments.map((enrollment) => (
+            <TableRow key={enrollment.id}>
+              <TableCell className="font-medium">{resolveUserName(enrollment.userId, users)}</TableCell>
+              <TableCell>{new Date(enrollment.enrolledAt).toLocaleDateString()}</TableCell>
+              <TableCell>
+                <p>Diagnóstico #{enrollment.preTestDiagnosticAttemptId}</p>
+                <p className="text-muted-foreground">{enrollment.preTestSummativeAttemptIds.length} summatives</p>
+              </TableCell>
+              <TableCell>
+                {enrollment.postTestDiagnosticAttemptId ? (
+                  <>
+                    <p>Diagnóstico #{enrollment.postTestDiagnosticAttemptId}</p>
+                    <p className="text-muted-foreground">{enrollment.postTestSummativeAttemptIds.length} summatives</p>
+                  </>
+                ) : (
+                  "Pendiente"
+                )}
+              </TableCell>
+              <TableCell className="tabular-nums">{enrollment.actionsCount}</TableCell>
+              <TableCell>{formatDate(enrollment.lastActionAt)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   )
 }

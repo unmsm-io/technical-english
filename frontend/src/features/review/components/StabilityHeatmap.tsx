@@ -1,3 +1,4 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
 import type { ReviewCard, ReviewStats } from "../../../types/review"
 
 interface StabilityHeatmapProps {
@@ -13,6 +14,14 @@ const buckets = [
   { label: "90+d", min: 90, max: Number.POSITIVE_INFINITY },
 ]
 
+const bucketShades = [
+  "var(--color-muted)",
+  "color-mix(in srgb, var(--color-foreground) 12%, var(--color-background))",
+  "color-mix(in srgb, var(--color-foreground) 22%, var(--color-background))",
+  "color-mix(in srgb, var(--color-foreground) 34%, var(--color-background))",
+  "color-mix(in srgb, var(--color-foreground) 48%, var(--color-background))",
+]
+
 export function StabilityHeatmap({ cards = [], stats }: StabilityHeatmapProps) {
   const counts = buckets.map((bucket) => ({
     ...bucket,
@@ -21,35 +30,59 @@ export function StabilityHeatmap({ cards = [], stats }: StabilityHeatmapProps) {
     ).length,
   }))
 
-  const total = counts.reduce((sum, bucket) => sum + bucket.value, 0) || stats?.totalCards || 1
+  const maxValue = Math.max(1, ...counts.map((bucket) => bucket.value), stats?.totalCards ?? 0)
+  const cellWidth = 96
+  const cellHeight = 88
+  const gap = 12
+  const width = counts.length * cellWidth + (counts.length - 1) * gap
+  const height = cellHeight
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">Heatmap de estabilidad</h3>
-          <p className="text-sm text-slate-600">
-            Distribución de tarjetas según la estabilidad calculada por FSRS.
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle>Heatmap de estabilidad</CardTitle>
+        <CardDescription>
+          Distribución del deck según la estabilidad calculada por FSRS.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <svg aria-label="Heatmap de estabilidad" className="w-full" viewBox={`0 0 ${width} ${height}`}>
+          {counts.map((bucket, index) => {
+            const x = index * (cellWidth + gap)
+            const fillOpacity = Math.max(0.18, bucket.value / maxValue)
+            return (
+              <g key={bucket.label}>
+                <rect
+                  fill={bucketShades[index]}
+                  fillOpacity={fillOpacity}
+                  height={cellHeight}
+                  rx="18"
+                  width={cellWidth}
+                  x={x}
+                  y="0"
+                />
+                <text className="fill-muted-foreground text-[12px]" x={x + 14} y="22">
+                  {bucket.label}
+                </text>
+                <text className="fill-foreground text-[28px] font-semibold" x={x + 14} y="58">
+                  {bucket.value}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          {counts.map((bucket, index) => (
+            <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1" key={bucket.label}>
+              <span
+                className="size-2.5 rounded-full"
+                style={{ backgroundColor: bucketShades[index] }}
+              />
+              {bucket.label}
+            </span>
+          ))}
         </div>
-      </div>
-      <div className="mt-6 grid gap-3 sm:grid-cols-5">
-        {counts.map((bucket, index) => {
-          const intensity = Math.max(0.12, bucket.value / total)
-          return (
-            <div
-              key={bucket.label}
-              className="rounded-2xl p-4 text-slate-900"
-              style={{
-                background: `rgba(37, 99, 235, ${Math.min(0.9, intensity + index * 0.06)})`,
-              }}
-            >
-              <p className="text-xs uppercase tracking-wide text-white/80">{bucket.label}</p>
-              <p className="mt-4 text-3xl font-semibold text-white">{bucket.value}</p>
-            </div>
-          )
-        })}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

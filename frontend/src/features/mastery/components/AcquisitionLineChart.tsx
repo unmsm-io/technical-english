@@ -1,21 +1,26 @@
+import { Radar } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
+import { EmptyState } from "../../../components/ui/empty-state"
 import type { AcquisitionPoint } from "../../../types/mastery"
 
 interface AcquisitionLineChartProps {
   points: AcquisitionPoint[]
-  title?: string
   subtitle?: string
+  title?: string
 }
 
 export function AcquisitionLineChart({
   points,
-  title = "Ritmo de adquisición",
   subtitle = "Vocabulario consolidado por semana.",
+  title = "Ritmo de adquisición",
 }: AcquisitionLineChartProps) {
   if (points.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
-        Aún no hay semanas con adquisiciones registradas.
-      </div>
+      <EmptyState
+        description="Aún no hay semanas con adquisiciones registradas."
+        icon={Radar}
+        title="Sin semanas registradas"
+      />
     )
   }
 
@@ -25,96 +30,61 @@ export function AcquisitionLineChart({
   const maxCount = Math.max(...points.map((point) => point.count), 1)
   const polyline = points
     .map((point, index) => {
-      const x =
-        padding +
-        (index / Math.max(points.length - 1, 1)) * (chartWidth - padding * 2)
-      const y =
-        chartHeight -
-        padding -
-        (point.count / maxCount) * (chartHeight - padding * 2)
+      const x = padding + (index / Math.max(points.length - 1, 1)) * (chartWidth - padding * 2)
+      const y = chartHeight - padding - (point.count / maxCount) * (chartHeight - padding * 2)
       return `${x},${y}`
     })
     .join(" ")
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
-        </div>
-        <div className="rounded-2xl bg-emerald-50 px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-emerald-700">Total</p>
-          <p className="text-sm font-semibold text-emerald-950">
-            {points.reduce((total, point) => total + point.count, 0)}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-5 overflow-x-auto">
-        <svg
-          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          className="h-72 w-full min-w-[560px]"
-          role="img"
-          aria-label={title}
-        >
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{subtitle}</CardDescription>
+      </CardHeader>
+      <CardContent className="overflow-x-auto">
+        <svg aria-label={title} className="h-72 w-full min-w-[560px]" role="img" viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
           {Array.from({ length: 5 }).map((_, index) => {
-            const y =
-              padding + (index / 4) * (chartHeight - padding * 2)
+            const y = padding + (index / 4) * (chartHeight - padding * 2)
             return (
               <line
                 key={y}
-                x1={padding}
-                y1={y}
-                x2={chartWidth - padding}
-                y2={y}
-                stroke="#e2e8f0"
+                stroke="var(--color-border)"
                 strokeDasharray="4 6"
+                x1={padding}
+                x2={chartWidth - padding}
+                y1={y}
+                y2={y}
               />
             )
           })}
 
           <polyline
             fill="none"
-            stroke="#0f766e"
-            strokeWidth="3"
             points={polyline}
-            strokeLinejoin="round"
+            stroke="var(--color-foreground)"
             strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="3"
           />
 
           {points.map((point, index) => {
-            const x =
-              padding +
-              (index / Math.max(points.length - 1, 1)) * (chartWidth - padding * 2)
-            const y =
-              chartHeight -
-              padding -
-              (point.count / maxCount) * (chartHeight - padding * 2)
+            const x = padding + (index / Math.max(points.length - 1, 1)) * (chartWidth - padding * 2)
+            const y = chartHeight - padding - (point.count / maxCount) * (chartHeight - padding * 2)
             return (
               <g key={point.week}>
-                <circle cx={x} cy={y} r="5" fill="#0f766e" />
-                <text
-                  x={x}
-                  y={chartHeight - 8}
-                  textAnchor="middle"
-                  className="fill-slate-500 text-[10px]"
-                >
+                <circle cx={x} cy={y} fill="var(--color-background)" r="5" stroke="var(--color-foreground)" strokeWidth="2" />
+                <text className="fill-muted-foreground text-[10px]" textAnchor="middle" x={x} y={chartHeight - 8}>
                   {point.week}
                 </text>
-                <text
-                  x={x}
-                  y={y - 12}
-                  textAnchor="middle"
-                  className="fill-slate-700 text-[10px] font-medium"
-                >
+                <text className="fill-foreground text-[10px] font-medium" textAnchor="middle" x={x} y={y - 12}>
                   {point.count}
                 </text>
               </g>
             )
           })}
         </svg>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   )
 }

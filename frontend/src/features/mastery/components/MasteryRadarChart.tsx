@@ -1,4 +1,7 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
+import { EmptyState } from "../../../components/ui/empty-state"
 import type { KcMasteryEntry } from "../../../types/mastery"
+import { Radar } from "lucide-react"
 
 interface MasteryRadarChartProps {
   entries: KcMasteryEntry[]
@@ -13,21 +16,18 @@ function polarToCartesian(center: number, radius: number, angleInDegrees: number
   }
 }
 
-export function MasteryRadarChart({
-  entries,
-  size = 360,
-}: MasteryRadarChartProps) {
+export function MasteryRadarChart({ entries, size = 360 }: MasteryRadarChartProps) {
   if (entries.length === 0) {
     return (
-      <div className="flex min-h-72 items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
-        Aún no hay knowledge components con respuestas suficientes para construir el radar.
-      </div>
+      <EmptyState
+        description="Aún no hay knowledge components con respuestas suficientes para construir el radar."
+        icon={Radar}
+        title="Sin radar disponible"
+      />
     )
   }
 
-  const sortedEntries = [...entries]
-    .sort((left, right) => right.pLearned - left.pLearned)
-    .slice(0, 8)
+  const sortedEntries = [...entries].sort((left, right) => right.pLearned - left.pLearned).slice(0, 8)
   const center = size / 2
   const maxRadius = size * 0.34
   const levels = 4
@@ -40,34 +40,20 @@ export function MasteryRadarChart({
     .join(" ")
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Radar de dominio</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Top {sortedEntries.length} knowledge components por probabilidad aprendida.
-          </p>
-        </div>
-        <div className="rounded-2xl bg-blue-50 px-3 py-2 text-right">
-          <p className="text-xs uppercase tracking-wide text-blue-700">Mastery</p>
-          <p className="text-sm font-semibold text-blue-950">
-            {Math.round(
-              (sortedEntries.reduce((total, entry) => total + entry.pLearned, 0) /
-                sortedEntries.length) *
-                100
-            )}
-            %
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
+    <Card>
+      <CardHeader>
+        <CardTitle>Radar de dominio</CardTitle>
+        <CardDescription>
+          Top {sortedEntries.length} knowledge components por probabilidad aprendida.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
         <div className="overflow-x-auto">
           <svg
-            viewBox={`0 0 ${size} ${size}`}
+            aria-label="Radar de dominio por knowledge component"
             className="mx-auto h-[320px] w-full min-w-[280px] max-w-[420px]"
             role="img"
-            aria-label="Radar de dominio por knowledge component"
+            viewBox={`0 0 ${size} ${size}`}
           >
             {Array.from({ length: levels }).map((_, levelIndex) => {
               const radius = (maxRadius / levels) * (levelIndex + 1)
@@ -81,10 +67,10 @@ export function MasteryRadarChart({
 
               return (
                 <polygon
+                  fill="none"
                   key={radius}
                   points={points}
-                  fill="none"
-                  stroke="#cbd5e1"
+                  stroke="var(--color-border)"
                   strokeWidth="1"
                 />
               )
@@ -98,19 +84,19 @@ export function MasteryRadarChart({
               return (
                 <g key={entry.kcId}>
                   <line
-                    x1={center}
-                    y1={center}
-                    x2={axisPoint.x}
-                    y2={axisPoint.y}
-                    stroke="#e2e8f0"
+                    stroke="var(--color-border)"
                     strokeWidth="1"
+                    x1={center}
+                    x2={axisPoint.x}
+                    y1={center}
+                    y2={axisPoint.y}
                   />
                   <text
+                    className="fill-muted-foreground text-[10px] font-medium"
+                    dominantBaseline="middle"
+                    textAnchor={labelPoint.x >= center ? "start" : "end"}
                     x={labelPoint.x}
                     y={labelPoint.y}
-                    textAnchor={labelPoint.x >= center ? "start" : "end"}
-                    dominantBaseline="middle"
-                    className="fill-slate-500 text-[10px] font-medium"
                   >
                     {entry.kcNameEs}
                   </text>
@@ -119,9 +105,9 @@ export function MasteryRadarChart({
             })}
 
             <polygon
+              fill="color-mix(in srgb, var(--color-foreground) 10%, transparent)"
               points={polygonPoints}
-              fill="rgba(37, 99, 235, 0.18)"
-              stroke="#2563eb"
+              stroke="var(--color-foreground)"
               strokeWidth="2.5"
             />
 
@@ -129,41 +115,28 @@ export function MasteryRadarChart({
               const angle = (360 / sortedEntries.length) * index
               const point = polarToCartesian(center, maxRadius * entry.pLearned, angle)
 
-              return (
-                <circle
-                  key={`${entry.kcId}-point`}
-                  cx={point.x}
-                  cy={point.y}
-                  r="4"
-                  fill="#1d4ed8"
-                />
-              )
+              return <circle cx={point.x} cy={point.y} fill="var(--color-foreground)" key={`${entry.kcId}-point`} r="4" />
             })}
           </svg>
         </div>
 
         <div className="space-y-3">
           {sortedEntries.map((entry) => (
-            <div
-              key={entry.kcId}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
-            >
+            <div className="rounded-lg border border-border bg-muted/20 px-4 py-3" key={entry.kcId}>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-medium text-slate-900">{entry.kcNameEs}</span>
-                <span className="text-sm font-semibold text-slate-700">
-                  {Math.round(entry.pLearned * 100)}%
-                </span>
+                <span className="text-sm font-medium">{entry.kcNameEs}</span>
+                <span className="text-sm font-semibold tabular-nums">{Math.round(entry.pLearned * 100)}%</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-blue-600"
+                  className="h-full rounded-full bg-foreground"
                   style={{ width: `${Math.max(6, Math.round(entry.pLearned * 100))}%` }}
                 />
               </div>
             </div>
           ))}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

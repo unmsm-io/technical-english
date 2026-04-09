@@ -1,4 +1,4 @@
-import { Flame } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 
 interface StreakIndicatorProps {
   longestStreak: number
@@ -7,14 +7,22 @@ interface StreakIndicatorProps {
 
 export function StreakIndicator({ longestStreak, retentionRate }: StreakIndicatorProps) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-900">
-      <div className="rounded-xl bg-orange-100 p-2">
-        <Flame className="h-5 w-5" />
-      </div>
-      <div>
-        <p className="font-semibold">Racha más larga: {longestStreak} días</p>
-        <p className="text-orange-700">Retención reciente: {retentionRate}%</p>
-      </div>
-    </div>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Ritmo reciente</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-3xl font-semibold tracking-tight text-foreground tabular-nums">
+            {longestStreak} días
+          </p>
+          <p>Racha más larga registrada en sesiones de repaso.</p>
+        </div>
+        <div className="rounded-lg border border-border bg-muted/30 px-3 py-2">
+          <p className="text-xs uppercase tracking-wide">Retención reciente</p>
+          <p className="mt-1 text-lg font-semibold text-foreground tabular-nums">{retentionRate}%</p>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

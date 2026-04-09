@@ -2,6 +2,10 @@ import { Loader2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router"
 import { getUsers } from "../api/users"
+import { PageShell } from "../components/layout/page-shell"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
 import { PilotApi } from "../features/pilot/PilotApi"
 import { CohenDChart } from "../features/pilot/components/CohenDChart"
 import { CohortMetricCard } from "../features/pilot/components/CohortMetricCard"
@@ -29,12 +33,8 @@ export function AdminPilotResultsPage() {
         setResults(resultsData)
         setUsers(userPage.content)
       })
-      .catch(() => {
-        setError("No se pudieron calcular los resultados del piloto.")
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+      .catch(() => setError("No se pudieron calcular los resultados del piloto."))
+      .finally(() => setLoading(false))
   }, [cohortId])
 
   const userMap = useMemo(
@@ -42,118 +42,94 @@ export function AdminPilotResultsPage() {
     [users]
   )
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center rounded-3xl border border-slate-200 bg-white py-20 shadow-sm">
-        <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
-      </div>
-    )
-  }
-
-  if (error || !results) {
-    return (
-      <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-        {error ?? "No hay resultados disponibles para esta cohorte."}
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-slate-900">{results.cohortName}</h1>
-        <p className="text-sm text-slate-600">
-          Resultados agregados del piloto con deltas pre/post y tamaños de efecto.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <CohortMetricCard label="Inscritos" value={`${results.enrolledCount}`} />
-        <CohortMetricCard label="Completados" value={`${results.completedCount}`} />
-        <CohortMetricCard
-          label="Δ vocabulario"
-          value={formatMetric(results.metrics.vocabularySizeDelta)}
-        />
-        <CohortMetricCard
-          label="Δ comprensión"
-          value={formatMetric(results.metrics.comprehensionScoreDelta, " pts")}
-        />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="space-y-1">
-            <h2 className="text-lg font-medium text-slate-900">Métricas del piloto</h2>
-            <p className="text-sm text-slate-500">
-              Lectura rápida para el reporte local del estudio.
-            </p>
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Aceptación de rewrite</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-950">
-                {formatMetric(results.metrics.rewriteAcceptanceRate, "%")}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Retorno dentro de 7 días</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-950">
-                {formatMetric(results.metrics.return7dRate, "%")}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Tiempo a primera acción</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-950">
-                {formatMetric(results.metrics.avgTimeToFirstActionMinutes, " min")}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Pass rate summative</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-950">
-                {formatMetric(results.metrics.summativePassRate, "%")}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <CohenDChart metrics={results.metrics} />
-      </div>
-
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-medium text-slate-900">Desglose por estudiante</h2>
+    <PageShell
+      subtitle="Deltas pre/post y tamaños de efecto consolidados para la cohorte."
+      title="Resultados del piloto"
+    >
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="size-6 animate-spin" />
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50 text-left text-slate-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Estudiante</th>
-                <th className="px-4 py-3 font-medium">Δ vocabulario</th>
-                <th className="px-4 py-3 font-medium">Δ comprensión</th>
-                <th className="px-4 py-3 font-medium">Rewrite</th>
-                <th className="px-4 py-3 font-medium">Primera acción</th>
-                <th className="px-4 py-3 font-medium">Retornó</th>
-                <th className="px-4 py-3 font-medium">Pass rate</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {results.perUserBreakdown.map((item) => (
-                <tr key={item.userId}>
-                  <td className="px-4 py-4 font-medium text-slate-900">
-                    {userMap.get(item.userId) ?? `Usuario ${item.userId}`}
-                  </td>
-                  <td className="px-4 py-4 text-slate-600">{formatMetric(item.vocabularySizeDelta)}</td>
-                  <td className="px-4 py-4 text-slate-600">{formatMetric(item.comprehensionScoreDelta)}</td>
-                  <td className="px-4 py-4 text-slate-600">{formatMetric(item.rewriteAcceptanceRate, "%")}</td>
-                  <td className="px-4 py-4 text-slate-600">{formatMetric(item.timeToFirstActionMinutes, " min")}</td>
-                  <td className="px-4 py-4 text-slate-600">{item.returnedWithin7Days ? "Sí" : "No"}</td>
-                  <td className="px-4 py-4 text-slate-600">{formatMetric(item.postSummativePassRate, "%")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
+      ) : error || !results ? (
+        <Alert variant="destructive">
+          <AlertTitle>Error de carga</AlertTitle>
+          <AlertDescription>{error ?? "No hay resultados disponibles para esta cohorte."}</AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <CohortMetricCard label="Inscritos" value={`${results.enrolledCount}`} />
+            <CohortMetricCard label="Completados" value={`${results.completedCount}`} />
+            <CohortMetricCard label="Δ vocabulario" value={formatMetric(results.metrics.vocabularySizeDelta)} />
+            <CohortMetricCard label="Δ comprensión" value={formatMetric(results.metrics.comprehensionScoreDelta, " pts")} />
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>Métricas del piloto</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border border-border bg-muted/20 p-4">
+                  <p className="text-sm text-muted-foreground">Aceptación de rewrite</p>
+                  <p className="mt-1 text-2xl font-semibold">{formatMetric(results.metrics.rewriteAcceptanceRate, "%")}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-4">
+                  <p className="text-sm text-muted-foreground">Retorno dentro de 7 días</p>
+                  <p className="mt-1 text-2xl font-semibold">{formatMetric(results.metrics.return7dRate, "%")}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-4">
+                  <p className="text-sm text-muted-foreground">Tiempo a primera acción</p>
+                  <p className="mt-1 text-2xl font-semibold">{formatMetric(results.metrics.avgTimeToFirstActionMinutes, " min")}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-4">
+                  <p className="text-sm text-muted-foreground">Pass rate summative</p>
+                  <p className="mt-1 text-2xl font-semibold">{formatMetric(results.metrics.summativePassRate, "%")}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <CohenDChart metrics={results.metrics} />
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Desglose por estudiante</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Estudiante</TableHead>
+                      <TableHead>Δ vocabulario</TableHead>
+                      <TableHead>Δ comprensión</TableHead>
+                      <TableHead>Rewrite</TableHead>
+                      <TableHead>Primera acción</TableHead>
+                      <TableHead>Retornó</TableHead>
+                      <TableHead>Pass rate</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {results.perUserBreakdown.map((item) => (
+                      <TableRow key={item.userId}>
+                        <TableCell className="font-medium">{userMap.get(item.userId) ?? `Usuario ${item.userId}`}</TableCell>
+                        <TableCell>{formatMetric(item.vocabularySizeDelta)}</TableCell>
+                        <TableCell>{formatMetric(item.comprehensionScoreDelta)}</TableCell>
+                        <TableCell>{formatMetric(item.rewriteAcceptanceRate, "%")}</TableCell>
+                        <TableCell>{formatMetric(item.timeToFirstActionMinutes, " min")}</TableCell>
+                        <TableCell>{item.returnedWithin7Days ? "Sí" : "No"}</TableCell>
+                        <TableCell>{formatMetric(item.postSummativePassRate, "%")}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </PageShell>
   )
 }

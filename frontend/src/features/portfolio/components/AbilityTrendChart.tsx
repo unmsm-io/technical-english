@@ -1,11 +1,15 @@
+import { EmptyState } from "../../../components/ui/empty-state"
 import type { PortfolioSnapshot } from "../../../types/portfolio"
+import { TrendingUp } from "lucide-react"
 
 export function AbilityTrendChart({ snapshots }: { snapshots: PortfolioSnapshot[] }) {
   if (snapshots.length === 0 || snapshots.every((snapshot) => snapshot.abilityTheta === null)) {
     return (
-      <section className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
-        Aún no hay snapshots con habilidad estimada.
-      </section>
+      <EmptyState
+        description="Aún no hay snapshots con habilidad estimada."
+        icon={TrendingUp}
+        title="Sin tendencia disponible"
+      />
     )
   }
 
@@ -25,34 +29,23 @@ export function AbilityTrendChart({ snapshots }: { snapshots: PortfolioSnapshot[
     .join(" ")
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Tendencia de habilidad</h2>
-      <p className="mt-1 text-sm text-slate-600">Evolución de `abilityTheta` entre snapshots.</p>
-      <div className="mt-5 overflow-x-auto">
-        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-72 w-full min-w-[560px]">
-          <polyline
-            points={polyline}
-            fill="none"
-            stroke="#2563eb"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {points.map((point, index) => {
-            const x = padding + (index / Math.max(points.length - 1, 1)) * (chartWidth - padding * 2)
-            const normalized = ((point.abilityTheta ?? 0) - minValue) / Math.max(maxValue - minValue, 0.1)
-            const y = chartHeight - padding - normalized * (chartHeight - padding * 2)
-            return (
-              <g key={point.id}>
-                <circle cx={x} cy={y} r="5" fill="#2563eb" />
-                <text x={x} y={chartHeight - 8} textAnchor="middle" className="fill-slate-500 text-[10px]">
-                  {new Date(point.computedAt).toLocaleDateString("es-PE", { month: "short" })}
-                </text>
-              </g>
-            )
-          })}
-        </svg>
-      </div>
+    <section className="overflow-x-auto rounded-lg border border-border bg-card p-5">
+      <svg className="h-72 w-full min-w-[560px]" viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+        <polyline fill="none" points={polyline} stroke="var(--color-foreground)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+        {points.map((point, index) => {
+          const x = padding + (index / Math.max(points.length - 1, 1)) * (chartWidth - padding * 2)
+          const normalized = ((point.abilityTheta ?? 0) - minValue) / Math.max(maxValue - minValue, 0.1)
+          const y = chartHeight - padding - normalized * (chartHeight - padding * 2)
+          return (
+            <g key={point.id}>
+              <circle cx={x} cy={y} fill="var(--color-background)" r="5" stroke="var(--color-foreground)" strokeWidth="2" />
+              <text className="fill-muted-foreground text-[10px]" textAnchor="middle" x={x} y={chartHeight - 8}>
+                {new Date(point.computedAt).toLocaleDateString("es-PE", { month: "short" })}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
     </section>
   )
 }
