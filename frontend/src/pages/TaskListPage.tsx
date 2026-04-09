@@ -76,7 +76,13 @@ export function TaskListPage() {
   }, [cefrLevel, debouncedSearch, page, selectedUserId, setSearchParams, taskType])
 
   useEffect(() => {
-    TaskApi.getTypes().then(setTaskTypes).catch(() => setTaskTypes(fallbackTaskTypes))
+    TaskApi.getTypes()
+      .then((types) => {
+        if (Array.isArray(types) && types.length > 0) {
+          setTaskTypes(types)
+        }
+      })
+      .catch(() => setTaskTypes(fallbackTaskTypes))
   }, [])
 
   useEffect(() => {
@@ -150,7 +156,7 @@ export function TaskListPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los tipos</SelectItem>
-              {taskTypes.map((option) => (
+              {(taskTypes ?? fallbackTaskTypes).map((option) => (
                 <SelectItem key={option.name} value={option.name}>
                   {option.displayNameEs}
                 </SelectItem>

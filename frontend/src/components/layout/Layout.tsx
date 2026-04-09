@@ -1,5 +1,6 @@
 import { Outlet } from "react-router"
 import { CommandPalette } from "../command-palette"
+import { GlossaryProvider } from "../glossary-dialog"
 import { Toaster } from "../ui/toast"
 import { Breadcrumbs } from "./Breadcrumbs"
 import { Header } from "./Header"
@@ -13,6 +14,7 @@ export function Layout() {
         <Outlet />
       </main>
       <CommandPalette />
+      <GlossaryProvider />
       <Toaster />
     </div>
   )

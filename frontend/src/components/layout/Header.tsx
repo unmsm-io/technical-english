@@ -1,4 +1,4 @@
-import { ChevronDown, Search, Settings, UserRound, LogOut } from "lucide-react"
+import { BookOpen, ChevronDown, Search, Settings, UserRound, LogOut } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link, NavLink, useLocation } from "react-router"
 import { getUser } from "../../api/users"
@@ -163,6 +163,18 @@ export function Header() {
             <Search className="size-4" />
             <span className="hidden text-sm text-muted-foreground lg:inline">Buscar</span>
             <Kbd className="hidden lg:inline-flex">⌘K</Kbd>
+          </Button>
+
+          <Button
+            aria-label="Abrir glosario de siglas y conceptos"
+            className="h-9 gap-2 rounded-full px-2.5 sm:px-3"
+            onClick={() => window.dispatchEvent(new Event("glossary:open"))}
+            size="sm"
+            variant="ghost"
+          >
+            <BookOpen className="size-4" />
+            <span className="hidden text-sm text-muted-foreground lg:inline">Glosario</span>
+            <Kbd className="hidden lg:inline-flex">⌘/</Kbd>
           </Button>
 
           <ThemeToggle />
